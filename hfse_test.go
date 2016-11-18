@@ -1,25 +1,26 @@
 package hfse
 
 import (
-  "testing"
-  "time"
-  "net/http"
+	"net/http"
+	"testing"
+	"time"
+
 	"github.com/labstack/echo"
-  "github.com/labstack/echo/middleware"
+	"github.com/labstack/echo/middleware"
 )
 
 func TestHfse(t *testing.T) {
-  h := New()
+	h := New()
 
-  h.Use(middleware.Logger())
-  h.Use(middleware.Recover())
+	h.Use(middleware.Logger())
+	h.Use(middleware.Recover())
 
-  h.server.GET("/", func(c echo.Context) error {
-    return c.String(http.StatusOK, "Hello, World!\n")
-  })
+	h.server.GET("/", func(c echo.Context) error {
+		return c.String(http.StatusOK, "Hello, World!\n")
+	})
 
-  // Start server
-  go h.Start(":8080")
-  time.Sleep(32 * time.Millisecond)
-  h.Shutdown()
+	// Start server
+	go h.Start(":8080")
+	time.Sleep(32 * time.Millisecond)
+	h.Shutdown()
 }

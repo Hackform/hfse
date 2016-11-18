@@ -1,12 +1,12 @@
 package service
 
 import (
-  "github.com/Hackform/hfse/kappa"
+	"github.com/Hackform/hfse/kappa"
 )
 
 type (
-  Service interface {
-    SetId(kappa.Const) kappa.Const
-    GetId() kappa.Const
-  }
+	Service interface {
+		SetId(kappa.Const) kappa.Const
+		GetId() kappa.Const
+	}
 )

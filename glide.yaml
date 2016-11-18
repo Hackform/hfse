@@ -1,0 +1,9 @@
+package: github.com/Hackform/hfse
+license: MPL-2.0
+owners:
+- name: Kevin Wang
+  email: wangkevin448@gmail.com
+  homepage: https://xorkevin.github.io/
+import:
+- package: github.com/labstack/echo
+  version: ^3.0.1

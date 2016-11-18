@@ -2,12 +2,13 @@ package hfse
 
 import (
   "testing"
+  "time"
   "net/http"
 	"github.com/labstack/echo"
   "github.com/labstack/echo/middleware"
 )
 
-func TestTimeConsuming(t *testing.T) {
+func TestHfse(t *testing.T) {
   h := New()
 
   h.Use(middleware.Logger())
@@ -18,5 +19,7 @@ func TestTimeConsuming(t *testing.T) {
   })
 
   // Start server
-  h.Start(":8080")
+  go h.Start(":8080")
+  time.Sleep(250 * time.Millisecond)
+  h.Shutdown()
 }

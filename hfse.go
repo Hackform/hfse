@@ -4,26 +4,24 @@ import (
   // "net/http"
   "time"
 	"github.com/labstack/echo"
+  "github.com/Hackform/hfse/kappa"
+  "github.com/Hackform/hfse/service"
+  "github.com/Hackform/hfse/middleware"
 )
 
 type (
   Hfse struct {
     server *echo.Echo
-    serviceKappa *Kappa
-    services map[uint16]*Service
-  }
-
-  Service interface {
-
+    serviceKappa *kappa.Kappa
+    services map[kappa.Const]*service.Service
   }
 )
-
-
 
 func New() *Hfse {
 	return &Hfse{
     server: echo.New(),
-    serviceKappa: NewKappa(),
+    serviceKappa: kappa.New(),
+    services: make(map[kappa.Const]*service.Service),
   }
 }
 
@@ -36,10 +34,13 @@ func (h *Hfse) Shutdown() {
 }
 
 
-func (h *Hfse) Register(s Service) {
-
+func (h *Hfse) Register(s *service.Service) kappa.Const {
+  k := h.serviceKappa.Get()
+  (*s).SetId(k)
+  h.services[k] = s
+  return k
 }
 
-func (h *Hfse) Use(m echo.MiddlewareFunc) {
-  h.server.Use(m)
+func (h *Hfse) Use(m middleware.Middleware) {
+  h.server.Use(m.(echo.MiddlewareFunc))
 }

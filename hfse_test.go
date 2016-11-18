@@ -20,6 +20,6 @@ func TestHfse(t *testing.T) {
 
   // Start server
   go h.Start(":8080")
-  time.Sleep(250 * time.Millisecond)
+  time.Sleep(32 * time.Millisecond)
   h.Shutdown()
 }

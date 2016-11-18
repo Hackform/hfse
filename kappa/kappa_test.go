@@ -1,4 +1,4 @@
-package hfse
+package kappa
 
 import (
   "testing"

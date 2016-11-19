@@ -1,19 +1,27 @@
 package himeji
 
-import (
-	"github.com/Hackform/hfse/kappa"
-)
+import "github.com/Hackform/hfse/kappa"
 
 type (
 	Himeji struct {
-		id kappa.Const
+		id   kappa.Const
+		repo *RepoFacade
+	}
+
+	RepoFacade interface {
+		Connect()
 	}
 )
 
-func New() *Himeji {
+func New(repo *RepoFacade) *Himeji {
 	return &Himeji{
-		id: 0,
+		id:   0,
+		repo: repo,
 	}
+}
+
+func (h *Himeji) Connect() {
+	(*h.repo).Connect()
 }
 
 func (h *Himeji) SetId(id kappa.Const) kappa.Const {

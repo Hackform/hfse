@@ -7,3 +7,4 @@ owners:
 import:
 - package: github.com/labstack/echo
   version: ^3.0.1
+- package: gopkg.in/mgo.v2

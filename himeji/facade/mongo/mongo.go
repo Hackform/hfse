@@ -46,18 +46,21 @@ func (f *MongoFacade) Close() {
 	f.session.Close()
 }
 
-func (f *MongoFacade) Insert(collection string, query himeji.Bounds, data himeji.Data) {
+func (f *MongoFacade) Insert(done chan<- bool, collection string, query himeji.Bounds, data himeji.Data) {
 	f.database.C(collection).Upsert(f.boundFormat(query), bson.M{"$set": data})
+	done <- true
 }
 
-func (f *MongoFacade) Query(collection string, query himeji.Bounds, result []himeji.Data) {
+func (f *MongoFacade) Query(done chan<- bool, collection string, query himeji.Bounds, result []himeji.Data) {
 	q := f.database.C(collection).Find(f.boundFormat(query))
 	q.Iter().All(result)
+	done <- true
 }
 
-func (f *MongoFacade) QuerySingle(collection string, query himeji.Bounds, result *himeji.Data) {
+func (f *MongoFacade) QuerySingle(done chan<- bool, collection string, query himeji.Bounds, result *himeji.Data) {
 	q := f.database.C(collection).Find(f.boundFormat(query))
 	q.One(result)
+	done <- true
 }
 
 func (f *MongoFacade) boundFormat(bounds himeji.Bounds) map[string]interface{} {

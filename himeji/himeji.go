@@ -11,9 +11,9 @@ type (
 	RepoFacade interface {
 		Connect()
 		Close()
-		Insert(collection string, data Data)
-		Query(collection string, query Bounds, result []Data)
-		QuerySingle(collection string, query Bounds, result *Data)
+		Insert(done chan<- bool, collection string, data Data)
+		Query(done chan<- bool, collection string, query Bounds, result []Data)
+		QuerySingle(done chan<- bool, collection string, query Bounds, result *Data)
 	}
 
 	Bounds []Bound
@@ -48,16 +48,22 @@ func (h *Himeji) Close() {
 	(*h.repo).Close()
 }
 
-func (h *Himeji) Insert(collection string, data Data) {
-	(*h.repo).Insert(collection, data)
+func (h *Himeji) Insert(collection string, data Data) <-chan bool {
+	done := make(chan bool)
+	go func() { (*h.repo).Insert(done, collection, data) }()
+	return done
 }
 
-func (h *Himeji) Query(collection string, query Bounds, result []Data) {
-	(*h.repo).Query(collection, query, result)
+func (h *Himeji) Query(collection string, query Bounds, result []Data) <-chan bool {
+	done := make(chan bool)
+	go func() { (*h.repo).Query(done, collection, query, result) }()
+	return done
 }
 
-func (h *Himeji) QuerySingle(collection string, query Bounds, result *Data) {
-	(*h.repo).QuerySingle(collection, query, result)
+func (h *Himeji) QuerySingle(collection string, query Bounds, result *Data) <-chan bool {
+	done := make(chan bool)
+	go func() { (*h.repo).QuerySingle(done, collection, query, result) }()
+	return done
 }
 
 func (h *Himeji) SetId(id kappa.Const) kappa.Const {

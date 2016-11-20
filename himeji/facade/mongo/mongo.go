@@ -3,6 +3,7 @@ package mongo
 import (
 	"github.com/Hackform/hfse/himeji"
 	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 type (
@@ -15,6 +16,7 @@ type (
 
 	MongoFacade struct {
 		dbInfo   mongoDbInfo
+		session  *mgo.Session
 		database *mgo.Database
 	}
 )
@@ -35,12 +37,17 @@ func (f *MongoFacade) Connect() {
 	if err != nil {
 		panic(err)
 	}
+	f.session = session
 	f.database = session.DB(f.dbInfo.name)
 	f.database.Login(f.dbInfo.user, f.dbInfo.pass)
 }
 
+func (f *MongoFacade) Close() {
+	f.session.Close()
+}
+
 func (f *MongoFacade) Insert(collection string, query himeji.Bounds, data himeji.Data) {
-	f.database.C(collection).Upsert(f.boundFormat(query), data)
+	f.database.C(collection).Upsert(f.boundFormat(query), bson.M{"$set": data})
 }
 
 func (f *MongoFacade) Query(collection string, query himeji.Bounds, result []himeji.Data) {

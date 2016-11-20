@@ -10,6 +10,7 @@ type (
 
 	RepoFacade interface {
 		Connect()
+		Close()
 		Insert(collection string, data Data)
 		Query(collection string, query Bounds, result []Data)
 		QuerySingle(collection string, query Bounds, result *Data)
@@ -41,6 +42,10 @@ func New(repo *RepoFacade) *Himeji {
 
 func (h *Himeji) Connect() {
 	(*h.repo).Connect()
+}
+
+func (h *Himeji) Close() {
+	(*h.repo).Close()
 }
 
 func (h *Himeji) Insert(collection string, data Data) {

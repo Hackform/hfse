@@ -6,7 +6,7 @@ import (
 
 type (
 	Service interface {
-		SetId(kappa.Const) kappa.Const
+		SetId(kappa kappa.Const) kappa.Const
 		GetId() kappa.Const
 	}
 )

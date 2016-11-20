@@ -19,7 +19,7 @@ type (
 	}
 )
 
-func New(url, name, user, pass string) *MongoFacade {
+func New(url, name, user, pass string, limit int) *MongoFacade {
 	return &MongoFacade{
 		dbInfo: mongoDbInfo{
 			url:  url,
@@ -39,19 +39,32 @@ func (f *MongoFacade) Connect() {
 	f.database.Login(f.dbInfo.user, f.dbInfo.pass)
 }
 
-func (f *MongoFacade) Insert(collection string, data himeji.Data) {
-	f.database.C(collection).Insert(data)
+func (f *MongoFacade) Insert(collection string, query himeji.Bounds, data himeji.Data) {
+	f.database.C(collection).Upsert(f.boundFormat(query), data)
 }
 
-func (f *MongoFacade) Query(collection string, query himeji.Bounds) himeji.Data {
-	for _, bound := range query {
+func (f *MongoFacade) Query(collection string, query himeji.Bounds, result []himeji.Data) {
+	q := f.database.C(collection).Find(f.boundFormat(query))
+	q.Iter().All(result)
+}
 
+func (f *MongoFacade) QuerySingle(collection string, query himeji.Bounds, result *himeji.Data) {
+	q := f.database.C(collection).Find(f.boundFormat(query))
+	q.One(result)
+}
+
+func (f *MongoFacade) boundFormat(bounds himeji.Bounds) map[string]interface{} {
+	m := make(map[string]interface{})
+	for _, bound := range bounds {
+		condition := bound.Condition
+		item := bound.Item
+		value := bound.Value
+		switch condition {
+		case "equal":
+			m[item] = value
+		default:
+			panic("condition invalid")
+		}
 	}
-	return f.database.C(collection).Find()
-}
-
-func (f *MongoFacade) boundFormat(bound himeji.Bound) (string, interface{}) {
-	condition := bound.Condition
-	item := bound.Item
-	value := bound.Value
+	return m
 }

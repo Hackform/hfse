@@ -11,12 +11,17 @@ type (
 	RepoFacade interface {
 		Connect()
 		Insert(collection string, data Data)
-		Query(collection string, query Bounds) Data
+		Query(collection string, query Bounds, result []Data)
+		QuerySingle(collection string, query Bounds, result *Data)
 	}
 
-	// Bounds is a query format
 	Bounds []Bound
 
+	// Bound is a query format
+	//
+	// conditions:
+	// equal
+	// limit
 	Bound struct {
 		Condition string
 		Item      string
@@ -42,8 +47,12 @@ func (h *Himeji) Insert(collection string, data Data) {
 	(*h.repo).Insert(collection, data)
 }
 
-func (h *Himeji) Query(collection string, query Bounds) Data {
-	return (*h.repo).Query(collection, query)
+func (h *Himeji) Query(collection string, query Bounds, result []Data) {
+	(*h.repo).Query(collection, query, result)
+}
+
+func (h *Himeji) QuerySingle(collection string, query Bounds, result *Data) {
+	(*h.repo).QuerySingle(collection, query, result)
 }
 
 func (h *Himeji) SetId(id kappa.Const) kappa.Const {

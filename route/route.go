@@ -2,11 +2,15 @@ package route
 
 import (
 	"github.com/Hackform/hfse/kappa"
+	"github.com/Hackform/hfse/middleware"
+  "github.com/labstack/echo"
 )
 
 type (
 	Route interface {
-		SetId(id string) string
-		GetId() string
+		Register(*Group)
+    Middleware() []middleware.Middleware
 	}
+
+  Group echo.Group
 )

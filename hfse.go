@@ -43,7 +43,8 @@ func (h *Hfse) Provide(s *service.Service) kappa.Const {
 }
 
 func (h *Hfse) Register(id string, r *route.Route) string {
-  
+  g := h.server.Group(id, r.Middleware()...)
+  r.Register(g.(*route.Group))
 }
 
 func (h *Hfse) Use(m middleware.Middleware) {

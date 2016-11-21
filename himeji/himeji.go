@@ -50,19 +50,19 @@ func (h *Himeji) Close() {
 
 func (h *Himeji) Insert(collection string, data Data) <-chan bool {
 	done := make(chan bool)
-	go func() { (*h.repo).Insert(done, collection, data) }()
+	go (*h.repo).Insert(done, collection, data)
 	return done
 }
 
 func (h *Himeji) Query(collection string, query Bounds, result []Data) <-chan bool {
 	done := make(chan bool)
-	go func() { (*h.repo).Query(done, collection, query, result) }()
+	go (*h.repo).Query(done, collection, query, result)
 	return done
 }
 
 func (h *Himeji) QuerySingle(collection string, query Bounds, result *Data) <-chan bool {
 	done := make(chan bool)
-	go func() { (*h.repo).QuerySingle(done, collection, query, result) }()
+	go (*h.repo).QuerySingle(done, collection, query, result)
 	return done
 }
 

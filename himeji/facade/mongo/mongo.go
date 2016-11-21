@@ -32,14 +32,18 @@ func New(url, name, user, pass string, limit int) *MongoFacade {
 	}
 }
 
-func (f *MongoFacade) Connect() {
+func (f *MongoFacade) Connect(done chan<- bool) {
 	session, err := mgo.Dial(f.dbInfo.url)
 	if err != nil {
-		panic(err)
+		done <- false
 	}
 	f.session = session
 	f.database = session.DB(f.dbInfo.name)
-	f.database.Login(f.dbInfo.user, f.dbInfo.pass)
+	err := f.database.Login(f.dbInfo.user, f.dbInfo.pass)
+  if err != nil {
+    done <- false
+  }
+  done <- true
 }
 
 func (f *MongoFacade) Close() {
@@ -47,19 +51,28 @@ func (f *MongoFacade) Close() {
 }
 
 func (f *MongoFacade) Insert(done chan<- bool, collection string, query himeji.Bounds, data himeji.Data) {
-	f.database.C(collection).Upsert(f.boundFormat(query), bson.M{"$set": data})
+	_, err := f.database.C(collection).Upsert(f.boundFormat(query), bson.M{"$set": data})
+  if err != nil {
+    done <- false
+  }
 	done <- true
 }
 
 func (f *MongoFacade) Query(done chan<- bool, collection string, query himeji.Bounds, result []himeji.Data) {
 	q := f.database.C(collection).Find(f.boundFormat(query))
-	q.Iter().All(result)
+	err := q.Iter().All(result)
+  if err != nil {
+    done <- false
+  }
 	done <- true
 }
 
 func (f *MongoFacade) QuerySingle(done chan<- bool, collection string, query himeji.Bounds, result *himeji.Data) {
 	q := f.database.C(collection).Find(f.boundFormat(query))
-	q.One(result)
+	err := q.One(result)
+  if err != nil {
+    done <- false
+  }
 	done <- true
 }
 
@@ -72,8 +85,6 @@ func (f *MongoFacade) boundFormat(bounds himeji.Bounds) map[string]interface{} {
 		switch condition {
 		case "equal":
 			m[item] = value
-		default:
-			panic("condition invalid")
 		}
 	}
 	return m

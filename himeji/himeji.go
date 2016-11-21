@@ -9,7 +9,7 @@ type (
 	}
 
 	RepoFacade interface {
-		Connect()
+		Connect(done chan<- bool)
 		Close()
 		Insert(done chan<- bool, collection string, data Data)
 		Query(done chan<- bool, collection string, query Bounds, result []Data)
@@ -31,6 +31,8 @@ type (
 
 	Data interface {
 	}
+
+  Error string
 )
 
 func New(repo *RepoFacade) *Himeji {
@@ -40,8 +42,10 @@ func New(repo *RepoFacade) *Himeji {
 	}
 }
 
-func (h *Himeji) Connect() {
-	(*h.repo).Connect()
+func (h *Himeji) Connect() <-chan bool {
+  done := make(chan bool)
+	go (*h.repo).Connect(done)
+  return done
 }
 
 func (h *Himeji) Close() {
@@ -73,4 +77,8 @@ func (h *Himeji) SetId(id kappa.Const) kappa.Const {
 
 func (h *Himeji) GetId() kappa.Const {
 	return h.id
+}
+
+func (e Error) Error() string {
+  return string(e)
 }

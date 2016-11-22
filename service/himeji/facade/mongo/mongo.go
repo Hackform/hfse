@@ -1,7 +1,7 @@
 package mongo
 
 import (
-	"github.com/Hackform/hfse/himeji"
+	"github.com/Hackform/hfse/service/himeji"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )

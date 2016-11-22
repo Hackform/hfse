@@ -1,9 +1,17 @@
 # TODO
 
 - [ ] HFSE - hackform service exchange
-- [ ] Colosseum - front end
+
+## Services
+
 - [ ] Himeji - data repository
-- [ ] Eiffel - application management -> event sign in
-- [ ] Pearl - event feed and announcements
+- [ ] Pionen - authentication
+- [ ] Pearl - web sockets
+- [ ] Colosseum - front end
+
+## Routes
+
+- [ ] Liberty - application management -> event sign in
+- [ ] Eiffel - event feed
 - [ ] Lloyds - mentor queue
 - [ ] Guggenheim - project submission

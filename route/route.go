@@ -1,15 +1,12 @@
 package route
 
 import (
-	"github.com/Hackform/hfse/middleware"
 	"github.com/labstack/echo"
 )
 
 type (
 	Route interface {
-		Register(Group)
-		Middleware() middleware.Middleware
+		Register(*echo.Group)
+		Middleware() []echo.MiddlewareFunc
 	}
-
-	Group *echo.Group
 )

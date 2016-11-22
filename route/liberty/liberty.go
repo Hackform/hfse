@@ -4,18 +4,24 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/Hackform/hfse/kappa"
+	"github.com/Hackform/hfse/service"
 	"github.com/labstack/echo"
 )
 
 type (
 	Liberty struct {
-		path string
+		path        string
+		substrate   *service.ServiceSubstrate
+		repoService kappa.Const
 	}
 )
 
-func New(path string) *Liberty {
+func New(path string, substrate *service.ServiceSubstrate, repoService kappa.Const) *Liberty {
 	return &Liberty{
-		path: path,
+		path:        path,
+		substrate:   substrate,
+		repoService: repoService,
 	}
 }
 

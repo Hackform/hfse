@@ -12,17 +12,15 @@ import (
 
 type (
 	Hfse struct {
-		server       *echo.Echo
-		serviceKappa *kappa.Kappa
-		services     map[kappa.Const]*service.Service
+		server   *echo.Echo
+		services *service.ServiceSubstrate
 	}
 )
 
 func New() *Hfse {
 	return &Hfse{
-		server:       echo.New(),
-		serviceKappa: kappa.New(),
-		services:     make(map[kappa.Const]*service.Service),
+		server:   echo.New(),
+		services: service.New(),
 	}
 }
 
@@ -35,10 +33,7 @@ func (h *Hfse) Shutdown() {
 }
 
 func (h *Hfse) Provide(s *service.Service) kappa.Const {
-	k := h.serviceKappa.Get()
-	(*s).SetId(k)
-	h.services[k] = s
-	return k
+	return h.services.Set(s)
 }
 
 func (h *Hfse) Register(r *route.Route) {

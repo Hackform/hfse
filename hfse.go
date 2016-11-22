@@ -41,7 +41,7 @@ func (h *Hfse) Provide(s *service.Service) kappa.Const {
 	return k
 }
 
-func (h *Hfse) Register(id string, r *route.Route) {
-	g := h.server.Group(id, (*r).Middleware()...)
+func (h *Hfse) Register(r *route.Route) {
+	g := h.server.Group((*r).GetPath(), (*r).Middleware()...)
 	(*r).Register(g)
 }

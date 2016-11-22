@@ -6,6 +6,7 @@ import (
 
 type (
 	Route interface {
+		GetPath() string
 		Register(*echo.Group)
 		Middleware() []echo.MiddlewareFunc
 	}

@@ -1,6 +1,9 @@
 package middleware
 
+import (
+	"github.com/labstack/echo"
+)
+
 type (
-	Middleware interface {
-	}
+	Middleware []echo.MiddlewareFunc
 )

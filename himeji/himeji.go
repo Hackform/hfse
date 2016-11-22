@@ -32,7 +32,7 @@ type (
 	Data interface {
 	}
 
-  Error string
+	Error string
 )
 
 func New(repo *RepoFacade) *Himeji {
@@ -43,9 +43,9 @@ func New(repo *RepoFacade) *Himeji {
 }
 
 func (h *Himeji) Connect() <-chan bool {
-  done := make(chan bool)
+	done := make(chan bool)
 	go (*h.repo).Connect(done)
-  return done
+	return done
 }
 
 func (h *Himeji) Close() {
@@ -80,5 +80,5 @@ func (h *Himeji) GetId() kappa.Const {
 }
 
 func (e Error) Error() string {
-  return string(e)
+	return string(e)
 }

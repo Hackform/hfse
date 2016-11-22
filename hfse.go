@@ -5,9 +5,8 @@ import (
 	"time"
 
 	"github.com/Hackform/hfse/kappa"
-	"github.com/Hackform/hfse/service"
 	"github.com/Hackform/hfse/route"
-  "github.com/Hackform/hfse/middleware"
+	"github.com/Hackform/hfse/service"
 	"github.com/labstack/echo"
 )
 
@@ -42,11 +41,7 @@ func (h *Hfse) Provide(s *service.Service) kappa.Const {
 	return k
 }
 
-func (h *Hfse) Register(id string, r *route.Route) string {
-  g := h.server.Group(id, r.Middleware()...)
-  r.Register(g.(*route.Group))
-}
-
-func (h *Hfse) Use(m middleware.Middleware) {
-	h.server.Use(m.(echo.MiddlewareFunc))
+func (h *Hfse) Register(id string, r *route.Route) {
+	g := h.server.Group(id, (*r).Middleware()...)
+	(*r).Register(g)
 }

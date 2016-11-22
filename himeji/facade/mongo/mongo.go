@@ -39,11 +39,11 @@ func (f *MongoFacade) Connect(done chan<- bool) {
 	}
 	f.session = session
 	f.database = session.DB(f.dbInfo.name)
-	err := f.database.Login(f.dbInfo.user, f.dbInfo.pass)
-  if err != nil {
-    done <- false
-  }
-  done <- true
+	err = f.database.Login(f.dbInfo.user, f.dbInfo.pass)
+	if err != nil {
+		done <- false
+	}
+	done <- true
 }
 
 func (f *MongoFacade) Close() {
@@ -52,27 +52,27 @@ func (f *MongoFacade) Close() {
 
 func (f *MongoFacade) Insert(done chan<- bool, collection string, query himeji.Bounds, data himeji.Data) {
 	_, err := f.database.C(collection).Upsert(f.boundFormat(query), bson.M{"$set": data})
-  if err != nil {
-    done <- false
-  }
+	if err != nil {
+		done <- false
+	}
 	done <- true
 }
 
 func (f *MongoFacade) Query(done chan<- bool, collection string, query himeji.Bounds, result []himeji.Data) {
 	q := f.database.C(collection).Find(f.boundFormat(query))
 	err := q.Iter().All(result)
-  if err != nil {
-    done <- false
-  }
+	if err != nil {
+		done <- false
+	}
 	done <- true
 }
 
 func (f *MongoFacade) QuerySingle(done chan<- bool, collection string, query himeji.Bounds, result *himeji.Data) {
 	q := f.database.C(collection).Find(f.boundFormat(query))
 	err := q.One(result)
-  if err != nil {
-    done <- false
-  }
+	if err != nil {
+		done <- false
+	}
 	done <- true
 }
 

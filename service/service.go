@@ -7,7 +7,7 @@ import (
 type (
 	ServiceSubstrate struct {
 		serviceKappa *kappa.Kappa
-		services     map[kappa.Const]*Service
+		services     map[kappa.Const]Service
 	}
 
 	Service interface {
@@ -19,17 +19,17 @@ type (
 func New() *ServiceSubstrate {
 	return &ServiceSubstrate{
 		serviceKappa: kappa.New(),
-		services:     make(map[kappa.Const]*Service),
+		services:     make(map[kappa.Const]Service),
 	}
 }
 
-func (s *ServiceSubstrate) Set(ser *Service) kappa.Const {
+func (s *ServiceSubstrate) Set(ser Service) kappa.Const {
 	k := s.serviceKappa.Get()
-	(*ser).SetId(k)
+	ser.SetId(k)
 	s.services[k] = ser
 	return k
 }
 
-func (s *ServiceSubstrate) Get(k kappa.Const) *Service {
+func (s *ServiceSubstrate) Get(k kappa.Const) Service {
 	return s.services[k]
 }

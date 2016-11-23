@@ -5,7 +5,7 @@ import "github.com/Hackform/hfse/kappa"
 type (
 	Himeji struct {
 		id   kappa.Const
-		repo *RepoFacade
+		repo RepoFacade
 	}
 
 	RepoFacade interface {
@@ -35,7 +35,7 @@ type (
 	Error string
 )
 
-func New(repo *RepoFacade) *Himeji {
+func New(repo RepoFacade) *Himeji {
 	return &Himeji{
 		id:   0,
 		repo: repo,
@@ -44,29 +44,29 @@ func New(repo *RepoFacade) *Himeji {
 
 func (h *Himeji) Connect() <-chan bool {
 	done := make(chan bool)
-	go (*h.repo).Connect(done)
+	go h.repo.Connect(done)
 	return done
 }
 
 func (h *Himeji) Close() {
-	(*h.repo).Close()
+	h.repo.Close()
 }
 
 func (h *Himeji) Insert(collection string, data Data) <-chan bool {
 	done := make(chan bool)
-	go (*h.repo).Insert(done, collection, data)
+	go h.repo.Insert(done, collection, data)
 	return done
 }
 
 func (h *Himeji) Query(collection string, query Bounds, result []Data) <-chan bool {
 	done := make(chan bool)
-	go (*h.repo).Query(done, collection, query, result)
+	go h.repo.Query(done, collection, query, result)
 	return done
 }
 
 func (h *Himeji) QuerySingle(collection string, query Bounds, result *Data) <-chan bool {
 	done := make(chan bool)
-	go (*h.repo).QuerySingle(done, collection, query, result)
+	go h.repo.QuerySingle(done, collection, query, result)
 	return done
 }
 

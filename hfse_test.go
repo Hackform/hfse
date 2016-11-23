@@ -2,6 +2,7 @@ package hfse
 
 import (
 	"net/http"
+	// "net/http/httptest"
 	"testing"
 	"time"
 
@@ -12,12 +13,8 @@ import (
 func TestHfse(t *testing.T) {
 	h := New()
 
-	h.server.Use(middleware.Logger())
-	h.server.Use(middleware.Recover())
-
-	h.server.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Hello, World!\n")
-	})
+	h.Use(middleware.Logger())
+	h.Use(middleware.Recover())
 
 	// Start server
 	go h.Start(":8080")

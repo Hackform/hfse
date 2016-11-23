@@ -2,6 +2,7 @@ package hfse
 
 import (
 	// "net/http"
+	"fmt"
 	"time"
 
 	"github.com/Hackform/hfse/kappa"
@@ -25,6 +26,7 @@ func New() *Hfse {
 }
 
 func (h *Hfse) Start(url string) {
+	fmt.Println("server starting")
 	h.server.Logger.Fatal(h.server.Start(url))
 }
 
@@ -32,11 +34,19 @@ func (h *Hfse) Shutdown() {
 	h.server.Shutdown(15 * time.Second)
 }
 
-func (h *Hfse) Provide(s *service.Service) kappa.Const {
+func (h *Hfse) Provide(s service.Service) kappa.Const {
 	return h.services.Set(s)
 }
 
-func (h *Hfse) Register(r *route.Route) {
-	g := h.server.Group((*r).GetPath(), (*r).Middleware()...)
-	(*r).Register(g)
+func (h *Hfse) Register(r route.Route) {
+	g := h.server.Group(r.GetPath(), r.Middleware()...)
+	r.Register(g)
+}
+
+func (h *Hfse) Use(m ...echo.MiddlewareFunc) {
+	h.server.Use(m...)
+}
+
+func (h *Hfse) GetSubstrate() *service.ServiceSubstrate {
+	return h.services
 }

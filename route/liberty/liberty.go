@@ -25,6 +25,10 @@ func New(path string, substrate *service.ServiceSubstrate, repoService kappa.Con
 	}
 }
 
+func (l *Liberty) GetPath() string {
+	return l.path
+}
+
 func (l *Liberty) Register(g *echo.Group) {
 	g.GET("/:userid", func(c echo.Context) error {
 		return c.String(http.StatusOK, fmt.Sprintf("fetching %s\n", c.Param("userid")))

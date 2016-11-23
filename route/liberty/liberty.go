@@ -2,11 +2,11 @@ package liberty
 
 import (
 	"fmt"
-	"net/http"
-
 	"github.com/Hackform/hfse/kappa"
 	"github.com/Hackform/hfse/service"
+	"github.com/Hackform/hfse/service/himeji"
 	"github.com/labstack/echo"
+	"net/http"
 )
 
 type (
@@ -14,6 +14,11 @@ type (
 		path        string
 		substrate   *service.ServiceSubstrate
 		repoService kappa.Const
+	}
+
+	modelUser struct {
+		Id   string `json:"id" bson:"_id"`
+		Name string `json:"name" bson:"name"`
 	}
 )
 
@@ -30,8 +35,35 @@ func (l *Liberty) GetPath() string {
 }
 
 func (l *Liberty) Register(g *echo.Group) {
+	collection := "Users"
+	repo := l.substrate.Get(l.repoService).(*himeji.Himeji)
+
 	g.GET("/:userid", func(c echo.Context) error {
-		return c.String(http.StatusOK, fmt.Sprintf("fetching %s\n", c.Param("userid")))
+		result := himeji.Data{
+			Value: modelUser{},
+		}
+		done := repo.QueryId(collection, c.Param("userid"), &result)
+		if <-done {
+			return c.JSON(http.StatusOK, &result.Value)
+		} else {
+			return echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("user %s not found", c.Param("userid")))
+		}
+	})
+
+	g.POST("", func(c echo.Context) error {
+		user := himeji.Data{
+			Value: modelUser{},
+		}
+		err := c.Bind(&user.Value)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, "json malformed")
+		}
+		done := repo.Insert(collection, &user)
+		if <-done {
+			return c.JSON(http.StatusCreated, &user.Value)
+		} else {
+			return echo.NewHTTPError(http.StatusBadRequest, "json malformed")
+		}
 	})
 }
 

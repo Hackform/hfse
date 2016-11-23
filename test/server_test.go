@@ -34,6 +34,9 @@ func TestHfse(t *testing.T) {
 	h.Use(middleware.Recover())
 
 	// Start server
+	repoConnect := repo.Connect()
+	defer repo.Close()
+	<-repoConnect
 	h.Start(":8080")
 	defer h.Shutdown()
 }

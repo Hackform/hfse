@@ -11,9 +11,9 @@ type (
 	RepoFacade interface {
 		Connect(done chan<- bool)
 		Close()
-		Insert(done chan<- bool, collection string, data Data)
-		Query(done chan<- bool, collection string, query Bounds, result []Data)
-		QuerySingle(done chan<- bool, collection string, query Bounds, result *Data)
+		Insert(done chan<- bool, collection string, data *Data)
+		Query(done chan<- bool, collection string, query Bounds, result *Data)
+		QueryId(done chan<- bool, collection string, query string, result *Data)
 	}
 
 	Bounds []Bound
@@ -29,7 +29,8 @@ type (
 		Value     string
 	}
 
-	Data interface {
+	Data struct {
+		Value interface{}
 	}
 
 	Error string
@@ -52,21 +53,21 @@ func (h *Himeji) Close() {
 	h.repo.Close()
 }
 
-func (h *Himeji) Insert(collection string, data Data) <-chan bool {
+func (h *Himeji) Insert(collection string, data *Data) <-chan bool {
 	done := make(chan bool)
 	go h.repo.Insert(done, collection, data)
 	return done
 }
 
-func (h *Himeji) Query(collection string, query Bounds, result []Data) <-chan bool {
+func (h *Himeji) Query(collection string, query Bounds, result *Data) <-chan bool {
 	done := make(chan bool)
 	go h.repo.Query(done, collection, query, result)
 	return done
 }
 
-func (h *Himeji) QuerySingle(collection string, query Bounds, result *Data) <-chan bool {
+func (h *Himeji) QueryId(collection string, query string, result *Data) <-chan bool {
 	done := make(chan bool)
-	go h.repo.QuerySingle(done, collection, query, result)
+	go h.repo.QueryId(done, collection, query, result)
 	return done
 }
 

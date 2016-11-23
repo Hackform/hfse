@@ -50,26 +50,26 @@ func (f *MongoFacade) Close() {
 	f.session.Close()
 }
 
-func (f *MongoFacade) Insert(done chan<- bool, collection string, query himeji.Bounds, data himeji.Data) {
-	_, err := f.database.C(collection).Upsert(f.boundFormat(query), bson.M{"$set": data})
+func (f *MongoFacade) Insert(done chan<- bool, collection string, query himeji.Bounds, data *himeji.Data) {
+	_, err := f.database.C(collection).Upsert(f.boundFormat(query), bson.M{"$set": data.Value})
 	if err != nil {
 		done <- false
 	}
 	done <- true
 }
 
-func (f *MongoFacade) Query(done chan<- bool, collection string, query himeji.Bounds, result []himeji.Data) {
+func (f *MongoFacade) Query(done chan<- bool, collection string, query himeji.Bounds, result *himeji.Data) {
 	q := f.database.C(collection).Find(f.boundFormat(query))
-	err := q.Iter().All(result)
+	err := q.Iter().All(result.Value)
 	if err != nil {
 		done <- false
 	}
 	done <- true
 }
 
-func (f *MongoFacade) QuerySingle(done chan<- bool, collection string, query himeji.Bounds, result *himeji.Data) {
-	q := f.database.C(collection).Find(f.boundFormat(query))
-	err := q.One(result)
+func (f *MongoFacade) QueryId(done chan<- bool, collection string, query string, result *himeji.Data) {
+	q := f.database.C(collection).Find(bson.M{"_id": query})
+	err := q.One(result.Value)
 	if err != nil {
 		done <- false
 	}

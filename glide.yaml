@@ -12,3 +12,10 @@ import:
   version: ^1.1.4
 - package: github.com/dgrijalva/jwt-go
   version: ^3.0.0
+- package: golang.org/x/crypto
+  subpackages:
+  - scrypt
+- package: golang.org/x/net
+  subpackages:
+  - http
+- package: golang.org/x/time

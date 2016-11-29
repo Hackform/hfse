@@ -17,9 +17,11 @@ type (
 		repoService kappa.Const
 	}
 
-	modelUser struct {
+	ModelUser struct {
 		Id   string `json:"id" bson:"_id"`
 		Name string `json:"name" bson:"name"`
+		Hash []byte `json:"hash" bson:"hash"`
+		Salt []byte `json:"salt" bson:"salt"`
 	}
 )
 
@@ -54,7 +56,7 @@ func (l *Liberty) GetPath() string {
 
 func NewUser() himeji.Data {
 	return himeji.Data{
-		Value: modelUser{},
+		Value: ModelUser{},
 	}
 }
 

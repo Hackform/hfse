@@ -11,6 +11,7 @@ import (
 
 type (
 	Liberty struct {
+		id          kappa.Const
 		path        string
 		substrate   *service.ServiceSubstrate
 		repoService kappa.Const
@@ -22,6 +23,10 @@ type (
 	}
 )
 
+var (
+	collection = "Users"
+)
+
 func New(path string, substrate *service.ServiceSubstrate, repoService kappa.Const) *Liberty {
 	return &Liberty{
 		path:        path,
@@ -30,19 +35,51 @@ func New(path string, substrate *service.ServiceSubstrate, repoService kappa.Con
 	}
 }
 
+func (l *Liberty) SetId(k kappa.Const) kappa.Const {
+	l.id = k
+	return k
+}
+
+func (l *Liberty) GetId() kappa.Const {
+	return l.id
+}
+
 func (l *Liberty) GetPath() string {
 	return l.path
 }
 
-func (l *Liberty) Register(g *echo.Group) {
-	collection := "Users"
-	repo := l.substrate.Get(l.repoService).(*himeji.Himeji)
+////////////
+// Models //
+////////////
 
+func NewUser() himeji.Data {
+	return himeji.Data{
+		Value: modelUser{},
+	}
+}
+
+//////////////
+// Handlers //
+//////////////
+
+func (l *Liberty) GetUser(userid string, result *himeji.Data) <-chan bool {
+	repo := l.substrate.Get(l.repoService).(*himeji.Himeji)
+	return repo.QueryId(collection, userid, result)
+}
+
+func (l *Liberty) StoreUser(user *himeji.Data) <-chan bool {
+	repo := l.substrate.Get(l.repoService).(*himeji.Himeji)
+	return repo.Insert(collection, user)
+}
+
+//////////////
+// Register //
+//////////////
+
+func (l *Liberty) Register(g *echo.Group) {
 	g.GET("/:userid", func(c echo.Context) error {
-		result := himeji.Data{
-			Value: modelUser{},
-		}
-		done := repo.QueryId(collection, c.Param("userid"), &result)
+		result := NewUser()
+		done := l.GetUser(c.Param("userid"), &result)
 		if <-done {
 			return c.JSON(http.StatusOK, &result)
 		} else {
@@ -51,14 +88,12 @@ func (l *Liberty) Register(g *echo.Group) {
 	})
 
 	g.POST("", func(c echo.Context) error {
-		user := himeji.Data{
-			Value: modelUser{},
-		}
+		user := NewUser()
 		err := c.Bind(&user)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "json malformed")
 		}
-		done := repo.Insert(collection, &user)
+		done := l.StoreUser(&user)
 		if <-done {
 			return c.JSON(http.StatusCreated, &user)
 		} else {

@@ -11,7 +11,7 @@ type (
 	}
 
 	Service interface {
-		SetId(kappa kappa.Const) kappa.Const
+		SetId(k kappa.Const) kappa.Const
 		GetId() kappa.Const
 	}
 )

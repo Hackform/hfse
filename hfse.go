@@ -15,6 +15,7 @@ type (
 	Hfse struct {
 		server   *echo.Echo
 		services *service.ServiceSubstrate
+		routes   *route.RouteSubstrate
 	}
 )
 
@@ -22,6 +23,7 @@ func New() *Hfse {
 	return &Hfse{
 		server:   echo.New(),
 		services: service.New(),
+		routes:   route.New(),
 	}
 }
 
@@ -38,9 +40,10 @@ func (h *Hfse) Provide(s service.Service) kappa.Const {
 	return h.services.Set(s)
 }
 
-func (h *Hfse) Register(r route.Route) {
+func (h *Hfse) Register(r route.Route) kappa.Const {
 	g := h.server.Group(r.GetPath(), r.Middleware()...)
 	r.Register(g)
+	return h.routes.Set(r)
 }
 
 func (h *Hfse) Use(m ...echo.MiddlewareFunc) {

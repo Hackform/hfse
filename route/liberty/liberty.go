@@ -13,7 +13,7 @@ type (
 	Liberty struct {
 		id          kappa.Const
 		path        string
-		substrate   *service.ServiceSubstrate
+		services    *service.ServiceSubstrate
 		repoService kappa.Const
 	}
 
@@ -27,10 +27,10 @@ var (
 	collection = "Users"
 )
 
-func New(path string, substrate *service.ServiceSubstrate, repoService kappa.Const) *Liberty {
+func New(path string, services *service.ServiceSubstrate, repoService kappa.Const) *Liberty {
 	return &Liberty{
 		path:        path,
-		substrate:   substrate,
+		services:    services,
 		repoService: repoService,
 	}
 }
@@ -63,12 +63,12 @@ func NewUser() himeji.Data {
 //////////////
 
 func (l *Liberty) GetUser(userid string, result *himeji.Data) <-chan bool {
-	repo := l.substrate.Get(l.repoService).(*himeji.Himeji)
+	repo := l.services.Get(l.repoService).(*himeji.Himeji)
 	return repo.QueryId(collection, userid, result)
 }
 
 func (l *Liberty) StoreUser(user *himeji.Data) <-chan bool {
-	repo := l.substrate.Get(l.repoService).(*himeji.Himeji)
+	repo := l.services.Get(l.repoService).(*himeji.Himeji)
 	return repo.Insert(collection, user)
 }
 

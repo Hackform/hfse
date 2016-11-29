@@ -44,7 +44,7 @@ func (l *Liberty) Register(g *echo.Group) {
 		}
 		done := repo.QueryId(collection, c.Param("userid"), &result)
 		if <-done {
-			return c.JSON(http.StatusOK, &result.Value)
+			return c.JSON(http.StatusOK, &result)
 		} else {
 			return echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("user %s not found", c.Param("userid")))
 		}
@@ -54,13 +54,13 @@ func (l *Liberty) Register(g *echo.Group) {
 		user := himeji.Data{
 			Value: modelUser{},
 		}
-		err := c.Bind(&user.Value)
+		err := c.Bind(&user)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "json malformed")
 		}
 		done := repo.Insert(collection, &user)
 		if <-done {
-			return c.JSON(http.StatusCreated, &user.Value)
+			return c.JSON(http.StatusCreated, &user)
 		} else {
 			return echo.NewHTTPError(http.StatusBadRequest, "json malformed")
 		}

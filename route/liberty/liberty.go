@@ -3,6 +3,7 @@ package liberty
 import (
 	"fmt"
 	"github.com/Hackform/hfse/kappa"
+	"github.com/Hackform/hfse/route/pionen/access"
 	"github.com/Hackform/hfse/service"
 	"github.com/Hackform/hfse/service/himeji"
 	"github.com/labstack/echo"
@@ -18,10 +19,12 @@ type (
 	}
 
 	ModelUser struct {
-		Id   string `json:"id" bson:"_id"`
-		Name string `json:"name" bson:"name"`
-		Hash []byte `json:"hash" bson:"hash"`
-		Salt []byte `json:"salt" bson:"salt"`
+		Id          string  `json:"id" bson:"_id"`
+		Name        string  `json:"name" bson:"name"`
+		AccessLevel uint8   `json:"accesslevel" bson:"accesslevel"`
+		AccessTags  []uint8 `json:"accesstags" bson:"accesstags"`
+		Hash        []byte  `json:"hash" bson:"hash"`
+		Salt        []byte  `json:"salt" bson:"salt"`
 	}
 )
 
@@ -54,8 +57,8 @@ func (l *Liberty) GetPath() string {
 // Models //
 ////////////
 
-func NewUser() himeji.Data {
-	return himeji.Data{
+func NewUser() *himeji.Data {
+	return &himeji.Data{
 		Value: ModelUser{},
 	}
 }
@@ -81,7 +84,7 @@ func (l *Liberty) StoreUser(user *himeji.Data) <-chan bool {
 func (l *Liberty) Register(g *echo.Group) {
 	g.GET("/:userid", func(c echo.Context) error {
 		result := NewUser()
-		done := l.GetUser(c.Param("userid"), &result)
+		done := l.GetUser(c.Param("userid"), result)
 		if <-done {
 			return c.JSON(http.StatusOK, &result)
 		} else {
@@ -91,11 +94,15 @@ func (l *Liberty) Register(g *echo.Group) {
 
 	g.POST("", func(c echo.Context) error {
 		user := NewUser()
-		err := c.Bind(&user)
+		err := c.Bind(user)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "json malformed")
 		}
-		done := l.StoreUser(&user)
+		usermodel := user.Value.(map[string]interface{})
+		usermodel["accesslevel"] = access.USER
+		usermodel["accesstags"] = make([]uint8, 0)
+		user.Value = usermodel
+		done := l.StoreUser(user)
 		if <-done {
 			return c.JSON(http.StatusCreated, &user)
 		} else {

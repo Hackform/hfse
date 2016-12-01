@@ -26,6 +26,10 @@ type (
 		Hash        []byte  `json:"hash" bson:"hash"`
 		Salt        []byte  `json:"salt" bson:"salt"`
 	}
+
+	JsonUser struct {
+		Value ModelUser `json:"data" bson:"data"`
+	}
 )
 
 var (
@@ -53,16 +57,6 @@ func (l *Liberty) GetPath() string {
 	return l.path
 }
 
-////////////
-// Models //
-////////////
-
-func NewUser() *himeji.Data {
-	return &himeji.Data{
-		Value: ModelUser{},
-	}
-}
-
 //////////////
 // Handlers //
 //////////////
@@ -83,28 +77,26 @@ func (l *Liberty) StoreUser(user *himeji.Data) <-chan bool {
 
 func (l *Liberty) Register(g *echo.Group) {
 	g.GET("/:userid", func(c echo.Context) error {
-		result := NewUser()
+		result := new(himeji.Data)
 		done := l.GetUser(c.Param("userid"), result)
 		if <-done {
-			return c.JSON(http.StatusOK, &result)
+			return c.JSON(http.StatusOK, result)
 		} else {
 			return echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("user %s not found", c.Param("userid")))
 		}
 	})
 
 	g.POST("", func(c echo.Context) error {
-		user := NewUser()
+		user := new(JsonUser)
 		err := c.Bind(user)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "json malformed")
 		}
-		usermodel := user.Value.(map[string]interface{})
-		usermodel["accesslevel"] = access.USER
-		usermodel["accesstags"] = make([]uint8, 0)
-		user.Value = usermodel
-		done := l.StoreUser(user)
+		user.Value.AccessLevel = access.USER
+		user.Value.AccessTags = make([]uint8, 0)
+		done := l.StoreUser(&himeji.Data{Value: user.Value})
 		if <-done {
-			return c.JSON(http.StatusCreated, &user)
+			return c.JSON(http.StatusCreated, user)
 		} else {
 			return echo.NewHTTPError(http.StatusBadRequest, "json malformed")
 		}

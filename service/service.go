@@ -16,7 +16,8 @@ type (
 	}
 
 	ServiceBase struct {
-		id kappa.Const
+		id        kappa.Const
+		substrate *ServiceSubstrate
 	}
 )
 
@@ -45,4 +46,12 @@ func (s *ServiceBase) SetId(id kappa.Const) kappa.Const {
 
 func (s *ServiceBase) GetId() kappa.Const {
 	return s.id
+}
+
+func (s *ServiceBase) SetServiceSubstrate(sub *ServiceSubstrate) {
+	s.substrate = sub
+}
+
+func (s *ServiceBase) GetService(k kappa.Const) Service {
+	return s.substrate.Get(k)
 }

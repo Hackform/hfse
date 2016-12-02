@@ -14,7 +14,6 @@ import (
 type (
 	Liberty struct {
 		route.RouteBase
-		services    *service.ServiceSubstrate
 		repoService kappa.Const
 	}
 
@@ -54,10 +53,10 @@ var (
 
 func New(path string, services *service.ServiceSubstrate, repoService kappa.Const) *Liberty {
 	l := &Liberty{
-		services:    services,
 		repoService: repoService,
 	}
 	l.RouteBase.SetPath(path)
+	l.SetServiceSubstrate(services)
 	return l
 }
 
@@ -66,12 +65,12 @@ func New(path string, services *service.ServiceSubstrate, repoService kappa.Cons
 //////////////
 
 func (l *Liberty) GetUser(userid string, result *himeji.Data) <-chan bool {
-	repo := l.services.Get(l.repoService).(*himeji.Himeji)
+	repo := l.GetService(l.repoService).(*himeji.Himeji)
 	return repo.QueryId(collection, userid, result)
 }
 
 func (l *Liberty) StoreUser(user *himeji.Data) <-chan bool {
-	repo := l.services.Get(l.repoService).(*himeji.Himeji)
+	repo := l.GetService(l.repoService).(*himeji.Himeji)
 	return repo.Insert(collection, user)
 }
 

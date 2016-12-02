@@ -23,7 +23,8 @@ type (
 
 	RouteBase struct {
 		service.ServiceBase
-		path string
+		path      string
+		substrate *RouteSubstrate
 	}
 )
 
@@ -52,4 +53,12 @@ func (r *RouteBase) GetPath() string {
 func (r *RouteBase) SetPath(path string) string {
 	r.path = path
 	return path
+}
+
+func (r *RouteBase) SetRouteSubstrate(sub *RouteSubstrate) {
+	r.substrate = sub
+}
+
+func (r *RouteBase) GetRoute(k kappa.Const) Route {
+	return r.substrate.Get(k)
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/Hackform/hfse/kappa"
 	"github.com/Hackform/hfse/route"
+	"github.com/Hackform/hfse/route/pionen"
 	"github.com/Hackform/hfse/route/pionen/access"
 	"github.com/Hackform/hfse/service/himeji"
 	"github.com/labstack/echo"
@@ -43,6 +44,15 @@ type (
 
 	RequestModelUser struct {
 		Value ModelUser `json:"data" bson:"data"`
+	}
+
+	PostUser struct {
+		PublicUser
+		Password string `json:"password" bson:"password"`
+	}
+
+	RequestPostUser struct {
+		Value PostUser `json:"data" bson:"data"`
 	}
 )
 
@@ -88,20 +98,26 @@ func (l *Liberty) Register(g *echo.Group) {
 	})
 
 	g.POST("", func(c echo.Context) error {
-		user := new(RequestPublicUser)
+		user := new(RequestPostUser)
 		err := c.Bind(user)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "json malformed")
 		}
-		usermodel := ModelUser{user.Value, PrivateUser{
+		hash, salt, err := pionen.Hash(user.Value.Password)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, "invalid password")
+		}
+		usermodel := ModelUser{user.Value.PublicUser, PrivateUser{
 			AccessLevel: access.USER,
 			AccessTags:  make([]uint8, 0),
+			Hash:        hash,
+			Salt:        salt,
 		}}
 		done := l.StoreUser(&himeji.Data{Value: usermodel})
 		if <-done {
 			return c.JSON(http.StatusCreated, user)
 		} else {
-			return echo.NewHTTPError(http.StatusBadRequest, "json malformed")
+			return echo.NewHTTPError(http.StatusInternalServerError, "could not store user")
 		}
 	})
 }

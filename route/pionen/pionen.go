@@ -7,6 +7,7 @@ import (
 	"github.com/Hackform/hfse/kappa"
 	"github.com/Hackform/hfse/route"
 	"github.com/Hackform/hfse/route/liberty"
+	"github.com/Hackform/hfse/service/himeji"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 	"golang.org/x/crypto/scrypt"
@@ -67,7 +68,7 @@ func (p *Pionen) GetPath() string {
 func (p *Pionen) VerifyUser(userid, password string) bool {
 	userData := p.routes.Get(p.userRoute).(*liberty.Liberty)
 
-	result := liberty.NewUser()
+	result := new(himeji.Data)
 	done := userData.GetUser(userid, result)
 	if !<-done {
 		return false

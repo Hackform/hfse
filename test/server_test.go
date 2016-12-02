@@ -3,6 +3,7 @@ package server
 import (
 	"github.com/Hackform/hfse"
 	"github.com/Hackform/hfse/route/liberty"
+	"github.com/Hackform/hfse/route/pionen"
 	"github.com/Hackform/hfse/service/himeji"
 	"github.com/Hackform/hfse/service/himeji/facade/mockrepo"
 	// "net/http/httptest"
@@ -23,7 +24,7 @@ func TestHfse(t *testing.T) {
 	repoId := h.Provide(repo)
 
 	libertyRoute := liberty.New("/users", repoId)
-	h.Register(libertyRoute)
+	libertyId := h.Register(libertyRoute)
 
 	////////////////
 	// Middleware //

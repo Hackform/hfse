@@ -14,6 +14,10 @@ type (
 		SetId(k kappa.Const) kappa.Const
 		GetId() kappa.Const
 	}
+
+	ServiceBase struct {
+		id kappa.Const
+	}
 )
 
 func New() *ServiceSubstrate {
@@ -32,4 +36,13 @@ func (s *ServiceSubstrate) Set(ser Service) kappa.Const {
 
 func (s *ServiceSubstrate) Get(k kappa.Const) Service {
 	return s.services[k]
+}
+
+func (s *ServiceBase) SetId(id kappa.Const) kappa.Const {
+	s.id = id
+	return s.id
+}
+
+func (s *ServiceBase) GetId() kappa.Const {
+	return s.id
 }

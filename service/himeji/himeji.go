@@ -1,10 +1,10 @@
 package himeji
 
-import "github.com/Hackform/hfse/kappa"
+import "github.com/Hackform/hfse/service"
 
 type (
 	Himeji struct {
-		id   kappa.Const
+		service.ServiceBase
 		repo RepoFacade
 	}
 
@@ -38,7 +38,6 @@ type (
 
 func New(repo RepoFacade) *Himeji {
 	return &Himeji{
-		id:   0,
 		repo: repo,
 	}
 }
@@ -69,15 +68,6 @@ func (h *Himeji) QueryId(collection string, query string, result *Data) <-chan b
 	done := make(chan bool)
 	go h.repo.QueryId(done, collection, query, result)
 	return done
-}
-
-func (h *Himeji) SetId(id kappa.Const) kappa.Const {
-	h.id = id
-	return h.id
-}
-
-func (h *Himeji) GetId() kappa.Const {
-	return h.id
 }
 
 func (e Error) Error() string {

@@ -3,6 +3,7 @@ package liberty
 import (
 	"fmt"
 	"github.com/Hackform/hfse/kappa"
+	"github.com/Hackform/hfse/route"
 	"github.com/Hackform/hfse/route/pionen/access"
 	"github.com/Hackform/hfse/service"
 	"github.com/Hackform/hfse/service/himeji"
@@ -12,8 +13,7 @@ import (
 
 type (
 	Liberty struct {
-		id          kappa.Const
-		path        string
+		route.RouteBase
 		services    *service.ServiceSubstrate
 		repoService kappa.Const
 	}
@@ -53,24 +53,12 @@ var (
 )
 
 func New(path string, services *service.ServiceSubstrate, repoService kappa.Const) *Liberty {
-	return &Liberty{
-		path:        path,
+	l := &Liberty{
 		services:    services,
 		repoService: repoService,
 	}
-}
-
-func (l *Liberty) SetId(k kappa.Const) kappa.Const {
-	l.id = k
-	return k
-}
-
-func (l *Liberty) GetId() kappa.Const {
-	return l.id
-}
-
-func (l *Liberty) GetPath() string {
-	return l.path
+	l.RouteBase.SetPath(path)
+	return l
 }
 
 //////////////

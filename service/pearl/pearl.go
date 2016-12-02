@@ -1,20 +1,11 @@
 package pearl
 
 import (
-	"github.com/Hackform/hfse/kappa"
+	"github.com/Hackform/hfse/service"
 )
 
 type (
 	Pearl struct {
-		id kappa.Const
+		service.ServiceBase
 	}
 )
-
-func (h *Pearl) SetId(id kappa.Const) kappa.Const {
-	h.id = id
-	return h.id
-}
-
-func (h *Pearl) GetId() kappa.Const {
-	return h.id
-}

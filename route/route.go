@@ -2,6 +2,7 @@ package route
 
 import (
 	"github.com/Hackform/hfse/kappa"
+	"github.com/Hackform/hfse/service"
 	"github.com/labstack/echo"
 )
 
@@ -15,8 +16,14 @@ type (
 		SetId(k kappa.Const) kappa.Const
 		GetId() kappa.Const
 		GetPath() string
+		SetPath(string) string
 		Register(*echo.Group)
 		Middleware() []echo.MiddlewareFunc
+	}
+
+	RouteBase struct {
+		service.ServiceBase
+		path string
 	}
 )
 
@@ -36,4 +43,13 @@ func (r *RouteSubstrate) Set(rou Route) kappa.Const {
 
 func (r *RouteSubstrate) Get(k kappa.Const) Route {
 	return r.routes[k]
+}
+
+func (r *RouteBase) GetPath() string {
+	return r.path
+}
+
+func (r *RouteBase) SetPath(path string) string {
+	r.path = path
+	return path
 }

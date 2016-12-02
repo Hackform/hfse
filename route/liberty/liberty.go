@@ -18,16 +18,32 @@ type (
 		repoService kappa.Const
 	}
 
-	ModelUser struct {
-		Id          string  `json:"id" bson:"_id"`
-		Name        string  `json:"name" bson:"name"`
+	////////////////
+	// User Model //
+	////////////////
+
+	PublicUser struct {
+		Id   string `json:"id" bson:"_id"`
+		Name string `json:"name" bson:"name"`
+	}
+
+	PrivateUser struct {
 		AccessLevel uint8   `json:"accesslevel" bson:"accesslevel"`
 		AccessTags  []uint8 `json:"accesstags" bson:"accesstags"`
 		Hash        []byte  `json:"hash" bson:"hash"`
 		Salt        []byte  `json:"salt" bson:"salt"`
 	}
 
-	JsonUser struct {
+	ModelUser struct {
+		PublicUser
+		PrivateUser
+	}
+
+	RequestPublicUser struct {
+		Value PublicUser `json:"data" bson:"data"`
+	}
+
+	RequestModelUser struct {
 		Value ModelUser `json:"data" bson:"data"`
 	}
 )
@@ -80,21 +96,23 @@ func (l *Liberty) Register(g *echo.Group) {
 		result := new(himeji.Data)
 		done := l.GetUser(c.Param("userid"), result)
 		if <-done {
-			return c.JSON(http.StatusOK, result)
+			return c.JSON(http.StatusOK, RequestPublicUser{Value: result.Value.(ModelUser).PublicUser})
 		} else {
 			return echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("user %s not found", c.Param("userid")))
 		}
 	})
 
 	g.POST("", func(c echo.Context) error {
-		user := new(JsonUser)
+		user := new(RequestPublicUser)
 		err := c.Bind(user)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "json malformed")
 		}
-		user.Value.AccessLevel = access.USER
-		user.Value.AccessTags = make([]uint8, 0)
-		done := l.StoreUser(&himeji.Data{Value: user.Value})
+		usermodel := ModelUser{user.Value, PrivateUser{
+			AccessLevel: access.USER,
+			AccessTags:  make([]uint8, 0),
+		}}
+		done := l.StoreUser(&himeji.Data{Value: usermodel})
 		if <-done {
 			return c.JSON(http.StatusCreated, user)
 		} else {

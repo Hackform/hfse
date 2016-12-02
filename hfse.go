@@ -37,19 +37,18 @@ func (h *Hfse) Shutdown() {
 }
 
 func (h *Hfse) Provide(s service.Service) kappa.Const {
+	s.SetServiceSubstrate(h.services)
 	return h.services.Set(s)
 }
 
 func (h *Hfse) Register(r route.Route) kappa.Const {
 	g := h.server.Group(r.GetPath(), r.Middleware()...)
+	r.SetServiceSubstrate(h.services)
+	r.SetRouteSubstrate(h.routes)
 	r.Register(g)
 	return h.routes.Set(r)
 }
 
 func (h *Hfse) Use(m ...echo.MiddlewareFunc) {
 	h.server.Use(m...)
-}
-
-func (h *Hfse) GetSubstrate() *service.ServiceSubstrate {
-	return h.services
 }

@@ -13,7 +13,6 @@ import (
 
 func TestHfse(t *testing.T) {
 	h := hfse.New()
-	substrate := h.GetSubstrate()
 
 	///////////////
 	// Services  //
@@ -23,7 +22,7 @@ func TestHfse(t *testing.T) {
 	repo := himeji.New(repoFacade)
 	repoId := h.Provide(repo)
 
-	libertyRoute := liberty.New("/users", substrate, repoId)
+	libertyRoute := liberty.New("/users", repoId)
 	h.Register(libertyRoute)
 
 	////////////////

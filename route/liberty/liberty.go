@@ -5,7 +5,6 @@ import (
 	"github.com/Hackform/hfse/kappa"
 	"github.com/Hackform/hfse/route"
 	"github.com/Hackform/hfse/route/pionen/access"
-	"github.com/Hackform/hfse/service"
 	"github.com/Hackform/hfse/service/himeji"
 	"github.com/labstack/echo"
 	"net/http"
@@ -51,12 +50,11 @@ var (
 	collection = "Users"
 )
 
-func New(path string, services *service.ServiceSubstrate, repoService kappa.Const) *Liberty {
+func New(path string, repoService kappa.Const) *Liberty {
 	l := &Liberty{
 		repoService: repoService,
 	}
 	l.RouteBase.SetPath(path)
-	l.SetServiceSubstrate(services)
 	return l
 }
 

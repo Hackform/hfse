@@ -13,6 +13,8 @@ type (
 	Service interface {
 		SetId(k kappa.Const) kappa.Const
 		GetId() kappa.Const
+		SetServiceSubstrate(*ServiceSubstrate)
+		GetService(kappa.Const) Service
 	}
 
 	ServiceBase struct {

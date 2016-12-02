@@ -17,6 +17,10 @@ type (
 		GetId() kappa.Const
 		GetPath() string
 		SetPath(string) string
+		GetRoute(kappa.Const) Route
+		SetRouteSubstrate(*RouteSubstrate)
+		SetServiceSubstrate(*service.ServiceSubstrate)
+		GetService(kappa.Const) service.Service
 		Register(*echo.Group)
 		Middleware() []echo.MiddlewareFunc
 	}

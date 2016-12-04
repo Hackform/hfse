@@ -17,15 +17,15 @@ import (
 
 type (
 	Pionen struct {
-		id         kappa.Const
-		path       string
-		routes     *route.RouteSubstrate
+		route.RouteBase
 		userRoute  kappa.Const
 		signingKey []byte
 	}
 
 	authClaim struct {
 		jwt.StandardClaims
+		liberty.PublicUser
+		liberty.UserPermissions
 	}
 )
 
@@ -41,24 +41,11 @@ const (
 )
 
 func New(path string, routes *route.RouteSubstrate, userRoute kappa.Const) *Pionen {
-	return &Pionen{
-		path:      path,
-		routes:    routes,
+	p := &Pionen{
 		userRoute: userRoute,
 	}
-}
-
-func (p *Pionen) SetId(id kappa.Const) kappa.Const {
-	p.id = id
-	return p.id
-}
-
-func (p *Pionen) GetId() kappa.Const {
-	return p.id
-}
-
-func (p *Pionen) GetPath() string {
-	return p.path
+	p.RouteBase.SetPath(path)
+	return p
 }
 
 //////////////
@@ -66,7 +53,7 @@ func (p *Pionen) GetPath() string {
 //////////////
 
 func (p *Pionen) VerifyUser(userid, password string) bool {
-	userData := p.routes.Get(p.userRoute).(*liberty.Liberty)
+	userData := p.GetRoute(p.userRoute).(*liberty.Liberty)
 
 	result := new(himeji.Data)
 	done := userData.GetUser(userid, result)
@@ -82,12 +69,22 @@ func (p *Pionen) VerifyUser(userid, password string) bool {
 }
 
 func (p *Pionen) GetJWT(userid, password string) (string, error) {
+	userData := p.GetRoute(p.userRoute).(*liberty.Liberty)
+
+	result := new(himeji.Data)
+	done := userData.GetUser(userid, result)
+	if !<-done {
+		return "", errors.New("cannot fetch user")
+	}
+	user := result.Value.(liberty.ModelUser)
+
 	if p.VerifyUser(userid, password) {
 		claims := authClaim{
-			jwt.StandardClaims{
-				ExpiresAt: time.Now().Add(time.Hour * jwt_hours).Unix(),
-				Issuer:    jwt_iss,
-			},
+			Issuer:    jwt_iss,
+			IssuedAt:  time.Now().Unix(),
+			ExpiresAt: time.Now().Add(time.Hour * jwt_hours).Unix(),
+			user.PublicUser,
+			user.PrivateUser.UserPermissions,
 		}
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 		return token.SignedString(p.signingKey)
@@ -96,9 +93,40 @@ func (p *Pionen) GetJWT(userid, password string) (string, error) {
 	}
 }
 
-func (p *Pionen) VerifyJWT(token string) (uint8, []uint8) {
-	tags := make([]uint8, 0)
-	return 0, tags
+func (p *Pionen) VerifyJWT(tokenString string, access uint8) bool {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		return []byte("AllYourBase"), nil
+	})
+
+	token, err := jwt.ParseWithClaims(tokenString, &authClaim{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+		}
+		return p.signingKey, nil
+	})
+
+	if claims, ok := token.Claims.(*authClaim); ok && token.Valid && err != nil {
+		userData := p.GetRoute(p.userRoute).(*liberty.Liberty)
+
+		result := new(himeji.Data)
+		done := userData.GetUser(claims.Id, result)
+		if !<-done {
+			return "", errors.New("cannot fetch user")
+		}
+		user := result.Value.(liberty.ModelUser)
+
+		if claims.AccessLevel <= access {
+			return true
+		}
+
+		for _, i := range claims.AccessTags {
+			if i == access {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 func Hash(password string) (h, s []byte, e error) {

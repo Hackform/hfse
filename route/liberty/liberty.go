@@ -26,11 +26,15 @@ type (
 		Name string `json:"name" bson:"name"`
 	}
 
-	PrivateUser struct {
+	UserPermissions struct {
 		AccessLevel uint8   `json:"accesslevel" bson:"accesslevel"`
 		AccessTags  []uint8 `json:"accesstags" bson:"accesstags"`
-		Hash        []byte  `json:"hash" bson:"hash"`
-		Salt        []byte  `json:"salt" bson:"salt"`
+	}
+
+	PrivateUser struct {
+		UserPermissions
+		Hash []byte `json:"hash" bson:"hash"`
+		Salt []byte `json:"salt" bson:"salt"`
 	}
 
 	ModelUser struct {

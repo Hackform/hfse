@@ -1,16 +1,15 @@
 package pionen
 
 import (
-	"bytes"
-	"crypto/rand"
 	"errors"
+	"fmt"
 	"github.com/Hackform/hfse/kappa"
 	"github.com/Hackform/hfse/route"
 	"github.com/Hackform/hfse/route/liberty"
+	"github.com/Hackform/hfse/route/pionen/hash"
 	"github.com/Hackform/hfse/service/himeji"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
-	"golang.org/x/crypto/scrypt"
 	"net/http"
 	"time"
 )
@@ -27,20 +26,31 @@ type (
 		liberty.PublicUser
 		liberty.UserPermissions
 	}
+
+	Login struct {
+		liberty.UserId
+		liberty.UserPassword
+	}
+
+	RequestLogin struct {
+		Data Login `json:"data"`
+	}
+
+	JWTToken struct {
+		Token string `json:"token"`
+	}
+
+	RequestJWT struct {
+		Data JWTToken `json:"data"`
+	}
 )
 
 const (
-	salt_length     = 32
-	hash_length     = 64
-	work_factor     = 16384
-	mem_blocksize   = 8
-	parallel_factor = 1
-
 	jwt_iss   = "hfse-pionen"
 	jwt_hours = 72
 )
 
-func New(path string, routes *route.RouteSubstrate, userRoute kappa.Const) *Pionen {
+func New(path string, userRoute kappa.Const) *Pionen {
 	p := &Pionen{
 		userRoute: userRoute,
 	}
@@ -52,37 +62,31 @@ func New(path string, routes *route.RouteSubstrate, userRoute kappa.Const) *Pion
 // Handlers //
 //////////////
 
-func (p *Pionen) VerifyUser(userid, password string) bool {
+func (p *Pionen) VerifyUser(userid, password string) (bool, *liberty.ModelUser) {
 	userData := p.GetRoute(p.userRoute).(*liberty.Liberty)
 
 	result := new(himeji.Data)
 	done := userData.GetUser(userid, result)
 	if !<-done {
-		return false
+		return false, nil
 	}
 	user := result.Value.(liberty.ModelUser)
-	dk, err := scrypt.Key([]byte(password), user.Salt, work_factor, mem_blocksize, parallel_factor, hash_length)
-	if err != nil {
-		return false
+
+	if hash.Verify(password, user.Salt, user.Hash) {
+		return true, &user
 	}
-	return bytes.Equal(dk, user.Hash)
+
+	return false, nil
 }
 
 func (p *Pionen) GetJWT(userid, password string) (string, error) {
-	userData := p.GetRoute(p.userRoute).(*liberty.Liberty)
-
-	result := new(himeji.Data)
-	done := userData.GetUser(userid, result)
-	if !<-done {
-		return "", errors.New("cannot fetch user")
-	}
-	user := result.Value.(liberty.ModelUser)
-
-	if p.VerifyUser(userid, password) {
+	if verify, user := p.VerifyUser(userid, password); verify {
 		claims := authClaim{
-			Issuer:    jwt_iss,
-			IssuedAt:  time.Now().Unix(),
-			ExpiresAt: time.Now().Add(time.Hour * jwt_hours).Unix(),
+			jwt.StandardClaims{
+				Issuer:    jwt_iss,
+				IssuedAt:  time.Now().Unix(),
+				ExpiresAt: time.Now().Add(time.Hour * jwt_hours).Unix(),
+			},
 			user.PublicUser,
 			user.PrivateUser.UserPermissions,
 		}
@@ -94,10 +98,6 @@ func (p *Pionen) GetJWT(userid, password string) (string, error) {
 }
 
 func (p *Pionen) VerifyJWT(tokenString string, access uint8) bool {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		return []byte("AllYourBase"), nil
-	})
-
 	token, err := jwt.ParseWithClaims(tokenString, &authClaim{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
@@ -106,15 +106,6 @@ func (p *Pionen) VerifyJWT(tokenString string, access uint8) bool {
 	})
 
 	if claims, ok := token.Claims.(*authClaim); ok && token.Valid && err != nil {
-		userData := p.GetRoute(p.userRoute).(*liberty.Liberty)
-
-		result := new(himeji.Data)
-		done := userData.GetUser(claims.Id, result)
-		if !<-done {
-			return "", errors.New("cannot fetch user")
-		}
-		user := result.Value.(liberty.ModelUser)
-
 		if claims.AccessLevel <= access {
 			return true
 		}
@@ -129,23 +120,23 @@ func (p *Pionen) VerifyJWT(tokenString string, access uint8) bool {
 	return false
 }
 
-func Hash(password string) (h, s []byte, e error) {
-	salt := make([]byte, salt_length)
-	_, err := rand.Read(salt)
-	if err != nil {
-		return make([]byte, hash_length), salt, err
-	}
-	hash, err := scrypt.Key([]byte(password), salt, work_factor, mem_blocksize, parallel_factor, hash_length)
-	return hash, salt, err
-}
-
 //////////////
 // Register //
 //////////////
 
 func (p *Pionen) Register(g *echo.Group) {
-	g.POST("", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, "retrieve")
+	g.POST("/login", func(c echo.Context) error {
+		loginAttempt := new(RequestLogin)
+		c.Bind(loginAttempt)
+		if jwtString, err := p.GetJWT(loginAttempt.Data.Id, loginAttempt.Data.Password); err != nil {
+			return c.JSON(http.StatusOK, RequestJWT{Data: JWTToken{Token: jwtString}})
+		} else {
+			return echo.NewHTTPError(http.StatusBadRequest, "invalid password")
+		}
+	})
+
+	g.POST("/verify", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, "verify")
 	})
 }
 

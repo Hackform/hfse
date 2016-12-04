@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/Hackform/hfse/kappa"
 	"github.com/Hackform/hfse/route"
-	"github.com/Hackform/hfse/route/pionen"
 	"github.com/Hackform/hfse/route/pionen/access"
+	pionenhash "github.com/Hackform/hfse/route/pionen/hash"
 	"github.com/Hackform/hfse/service/himeji"
 	"github.com/labstack/echo"
 	"net/http"
@@ -21,8 +21,12 @@ type (
 	// User Model //
 	////////////////
 
+	UserId struct {
+		Id string `json:"id" bson:"_id"`
+	}
+
 	PublicUser struct {
-		Id   string `json:"id" bson:"_id"`
+		UserId
 		Name string `json:"name" bson:"name"`
 	}
 
@@ -43,20 +47,24 @@ type (
 	}
 
 	RequestPublicUser struct {
-		Value PublicUser `json:"data" bson:"data"`
+		Value PublicUser `json:"data"`
 	}
 
 	RequestModelUser struct {
-		Value ModelUser `json:"data" bson:"data"`
+		Value ModelUser `json:"data"`
+	}
+
+	UserPassword struct {
+		Password string `json:"password"`
 	}
 
 	PostUser struct {
 		PublicUser
-		Password string `json:"password" bson:"password"`
+		UserPassword
 	}
 
 	RequestPostUser struct {
-		Value PostUser `json:"data" bson:"data"`
+		Value PostUser `json:"data"`
 	}
 )
 
@@ -107,19 +115,21 @@ func (l *Liberty) Register(g *echo.Group) {
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "json malformed")
 		}
-		hash, salt, err := pionen.Hash(user.Value.Password)
+		hash, salt, err := pionenhash.Hash(user.Value.Password)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "invalid password")
 		}
 		usermodel := ModelUser{user.Value.PublicUser, PrivateUser{
-			AccessLevel: access.USER,
-			AccessTags:  make([]uint8, 0),
-			Hash:        hash,
-			Salt:        salt,
+			UserPermissions{
+				AccessLevel: access.USER,
+				AccessTags:  make([]uint8, 0),
+			},
+			hash,
+			salt,
 		}}
 		done := l.StoreUser(&himeji.Data{Value: usermodel})
 		if <-done {
-			return c.JSON(http.StatusCreated, user)
+			return c.JSON(http.StatusCreated, user.Value.PublicUser)
 		} else {
 			return echo.NewHTTPError(http.StatusInternalServerError, "could not store user")
 		}

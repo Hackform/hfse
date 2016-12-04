@@ -105,7 +105,7 @@ func (p *Pionen) VerifyJWT(tokenString string, access uint8) bool {
 		return p.signingKey, nil
 	})
 
-	if claims, ok := token.Claims.(*authClaim); ok && token.Valid && err != nil {
+	if claims, ok := token.Claims.(*authClaim); ok && token.Valid && err == nil {
 		if claims.AccessLevel <= access {
 			return true
 		}
@@ -128,7 +128,7 @@ func (p *Pionen) Register(g *echo.Group) {
 	g.POST("/login", func(c echo.Context) error {
 		loginAttempt := new(RequestLogin)
 		c.Bind(loginAttempt)
-		if jwtString, err := p.GetJWT(loginAttempt.Data.Id, loginAttempt.Data.Password); err != nil {
+		if jwtString, err := p.GetJWT(loginAttempt.Data.Id, loginAttempt.Data.Password); err == nil {
 			return c.JSON(http.StatusOK, RequestJWT{Data: JWTToken{Token: jwtString}})
 		} else {
 			return echo.NewHTTPError(http.StatusBadRequest, "invalid password")

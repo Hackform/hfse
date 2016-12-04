@@ -29,5 +29,5 @@ func Verify(password string, salt, passhash []byte) bool {
 	if err != nil {
 		return false
 	}
-	return !bytes.Equal(dk, passhash)
+	return bytes.Equal(dk, passhash)
 }

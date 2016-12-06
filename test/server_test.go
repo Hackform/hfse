@@ -2,10 +2,11 @@ package server
 
 import (
 	"github.com/Hackform/hfse"
-	"github.com/Hackform/hfse/route/liberty"
-	"github.com/Hackform/hfse/route/pionen"
+	"github.com/Hackform/hfse/route/libertyroute"
+	"github.com/Hackform/hfse/route/pionenroute"
 	"github.com/Hackform/hfse/service/himeji"
 	"github.com/Hackform/hfse/service/himeji/facade/mockrepo"
+	"github.com/Hackform/hfse/service/pionen"
 	// "net/http/httptest"
 	// "time"
 	"github.com/labstack/echo/middleware"
@@ -20,14 +21,11 @@ func TestHfse(t *testing.T) {
 	///////////////
 
 	repoFacade := mockrepo.New()
-	repo := himeji.New(repoFacade)
-	repoId := h.Provide(repo)
+	repo := h.Provide(himeji.New(repoFacade))
+	auth := h.Provide(pionen.New("signing-key", "hfse", 48, repo))
 
-	libertyRoute := liberty.New("/users", repoId)
-	libertyId := h.Register(libertyRoute)
-
-	pionenRoute := pionen.New("/auth", "signing-key", "hfse", 48, libertyId)
-	h.Register(pionenRoute)
+	h.Register(libertyroute.New("/users", repo))
+	h.Register(pionenroute.New("/auth", auth))
 
 	////////////////
 	// Middleware //
@@ -37,9 +35,6 @@ func TestHfse(t *testing.T) {
 	h.Use(middleware.Recover())
 
 	// Start server
-	repoConnect := repo.Connect()
-	defer repo.Close()
-	<-repoConnect
-	h.Start(":8080")
 	defer h.Shutdown()
+	h.Start(":8080")
 }

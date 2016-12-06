@@ -15,6 +15,8 @@ type (
 		GetId() kappa.Const
 		SetServiceSubstrate(*ServiceSubstrate)
 		GetService(kappa.Const) Service
+		Start()
+		Shutdown()
 	}
 
 	ServiceBase struct {

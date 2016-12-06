@@ -42,6 +42,15 @@ func New(repo RepoFacade) *Himeji {
 	}
 }
 
+func (h *Himeji) Start() {
+	done := h.Connect()
+	<-done
+}
+
+func (h *Himeji) Shutdown() {
+	h.Close()
+}
+
 func (h *Himeji) Connect() <-chan bool {
 	done := make(chan bool)
 	go h.repo.Connect(done)

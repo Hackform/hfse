@@ -2,7 +2,7 @@ package pionenroute
 
 import (
 	"github.com/Hackform/hfse/kappa"
-	libertyModel "github.com/Hackform/hfse/model/liberty"
+	"github.com/Hackform/hfse/model/libertymodel"
 	"github.com/Hackform/hfse/route"
 	"github.com/Hackform/hfse/service/pionen"
 	"github.com/Hackform/hfse/service/pionen/access"
@@ -17,8 +17,8 @@ type (
 	}
 
 	Login struct {
-		libertyModel.UserId
-		libertyModel.UserPassword
+		libertymodel.UserId
+		libertymodel.UserPassword
 	}
 
 	RequestLogin struct {
@@ -59,8 +59,18 @@ func (p *PionenRoute) Register(g *echo.Group) {
 		}
 	})
 
+	g.POST("/verify", func(c echo.Context) error {
+		req := new(RequestJWT)
+		c.Bind(req)
+		if auth.VerifyJWT(req.Value.Token, access.USER) {
+			return c.JSON(http.StatusOK, true)
+		} else {
+			return c.JSON(http.StatusBadRequest, false)
+		}
+	})
+
 	// for testing
-	g.POST("/decode", func(c echo.Context) error {
+	g.POST("/unstable/decode", func(c echo.Context) error {
 		req := new(RequestJWT)
 		c.Bind(req)
 
@@ -71,17 +81,6 @@ func (p *PionenRoute) Register(g *echo.Group) {
 		}
 
 		return c.JSON(http.StatusOK, token)
-	})
-
-	// for testing
-	g.POST("/verify", func(c echo.Context) error {
-		req := new(RequestJWT)
-		c.Bind(req)
-		if auth.VerifyJWT(req.Value.Token, access.USER) {
-			return c.JSON(http.StatusOK, true)
-		} else {
-			return c.JSON(http.StatusBadRequest, false)
-		}
 	})
 }
 

@@ -3,7 +3,7 @@ package libertyroute
 import (
 	"fmt"
 	"github.com/Hackform/hfse/kappa"
-	model "github.com/Hackform/hfse/model/liberty"
+	"github.com/Hackform/hfse/model/libertymodel"
 	"github.com/Hackform/hfse/route"
 	"github.com/Hackform/hfse/service/himeji"
 	"github.com/Hackform/hfse/service/pionen/access"
@@ -19,16 +19,16 @@ type (
 	}
 
 	RequestPublicUser struct {
-		Value model.PublicUser `json:"data"`
+		Value libertymodel.PublicUser `json:"data"`
 	}
 
 	RequestModelUser struct {
-		Value model.ModelUser `json:"data"`
+		Value libertymodel.ModelUser `json:"data"`
 	}
 
 	PostUser struct {
-		model.PublicUser
-		model.UserPassword
+		libertymodel.PublicUser
+		libertymodel.UserPassword
 	}
 
 	RequestPostUser struct {
@@ -53,9 +53,9 @@ func (l *LibertyRoute) Register(g *echo.Group) {
 
 	g.GET("/:userid", func(c echo.Context) error {
 		result := new(himeji.Data)
-		done := model.GetUser(repo, c.Param("userid"), result)
+		done := libertymodel.GetUser(repo, c.Param("userid"), result)
 		if <-done {
-			return c.JSON(http.StatusOK, RequestPublicUser{Value: result.Value.(model.ModelUser).PublicUser})
+			return c.JSON(http.StatusOK, RequestPublicUser{Value: result.Value.(libertymodel.ModelUser).PublicUser})
 		} else {
 			return echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("user %s not found", c.Param("userid")))
 		}
@@ -71,10 +71,10 @@ func (l *LibertyRoute) Register(g *echo.Group) {
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "invalid password")
 		}
-		usermodel := model.ModelUser{
+		usermodel := libertymodel.ModelUser{
 			PublicUser: user.Value.PublicUser,
-			PrivateUser: model.PrivateUser{
-				UserPermissions: model.UserPermissions{
+			PrivateUser: libertymodel.PrivateUser{
+				UserPermissions: libertymodel.UserPermissions{
 					AccessLevel: access.USER,
 					AccessTags:  make([]uint8, 0),
 				},
@@ -82,7 +82,7 @@ func (l *LibertyRoute) Register(g *echo.Group) {
 				Salt: salt,
 			},
 		}
-		done := model.StoreUser(repo, &himeji.Data{Value: usermodel})
+		done := libertymodel.StoreUser(repo, &himeji.Data{Value: usermodel})
 		if <-done {
 			return c.JSON(http.StatusCreated, RequestPublicUser{user.Value.PublicUser})
 		} else {

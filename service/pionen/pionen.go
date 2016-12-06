@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Hackform/hfse/kappa"
-	libertyModel "github.com/Hackform/hfse/model/liberty"
+	"github.com/Hackform/hfse/model/libertymodel"
 	"github.com/Hackform/hfse/service"
 	"github.com/Hackform/hfse/service/himeji"
 	"github.com/Hackform/hfse/service/pionen/access"
@@ -24,8 +24,8 @@ type (
 
 	authClaim struct {
 		jwt.StandardClaims
-		libertyModel.PublicUser
-		libertyModel.UserPermissions
+		libertymodel.PublicUser
+		libertymodel.UserPermissions
 	}
 )
 
@@ -41,15 +41,15 @@ func New(signingKey, issuer string, hours int, repoService kappa.Const) *Pionen 
 func (p *Pionen) Start()    {}
 func (p *Pionen) Shutdown() {}
 
-func (p *Pionen) VerifyUser(userid, password string) (bool, *libertyModel.ModelUser) {
+func (p *Pionen) VerifyUser(userid, password string) (bool, *libertymodel.ModelUser) {
 	repo := p.GetService(p.repoService).(*himeji.Himeji)
 
 	result := new(himeji.Data)
-	done := libertyModel.GetUser(repo, userid, result)
+	done := libertymodel.GetUser(repo, userid, result)
 	if !<-done {
 		return false, nil
 	}
-	user := result.Value.(libertyModel.ModelUser)
+	user := result.Value.(libertymodel.ModelUser)
 
 	if hash.Verify(password, user.Salt, user.Hash) {
 		return true, &user

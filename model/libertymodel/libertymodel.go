@@ -1,4 +1,4 @@
-package liberty
+package libertymodel
 
 import (
 	"github.com/Hackform/hfse/service/himeji"

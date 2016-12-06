@@ -26,7 +26,7 @@ func TestHfse(t *testing.T) {
 	libertyRoute := liberty.New("/users", repoId)
 	libertyId := h.Register(libertyRoute)
 
-	pionenRoute := pionen.New("/auth", libertyId)
+	pionenRoute := pionen.New("/auth", "signing-key", "hfse", 48, libertyId)
 	h.Register(pionenRoute)
 
 	////////////////

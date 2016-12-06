@@ -142,6 +142,7 @@ func (p *Pionen) Register(g *echo.Group) {
 		}
 	})
 
+	// for testing
 	g.POST("/decode", func(c echo.Context) error {
 		req := new(RequestJWT)
 		c.Bind(req)
@@ -153,6 +154,16 @@ func (p *Pionen) Register(g *echo.Group) {
 		}
 
 		return c.JSON(http.StatusOK, token)
+	})
+
+	g.POST("/verify", func(c echo.Context) error {
+		req := new(RequestJWT)
+		c.Bind(req)
+		if p.VerifyJWT(req.Value.Token, access.USER) {
+			return c.JSON(http.StatusOK, true)
+		} else {
+			return c.JSON(http.StatusBadRequest, false)
+		}
 	})
 }
 

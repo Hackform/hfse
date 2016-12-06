@@ -7,5 +7,6 @@ const (
 	ADMIN  uint8 = 4
 	MOD    uint8 = 64
 	USER   uint8 = 127
+	DIVIDE uint8 = 128
 	PUBLIC uint8 = 255
 )

@@ -6,6 +6,7 @@ import (
 	"github.com/Hackform/hfse/model/libertymodel"
 	"github.com/Hackform/hfse/route"
 	"github.com/Hackform/hfse/service/himeji"
+	"github.com/Hackform/hfse/service/pionen"
 	"github.com/Hackform/hfse/service/pionen/access"
 	pionenhash "github.com/Hackform/hfse/service/pionen/hash"
 	"github.com/labstack/echo"
@@ -16,12 +17,14 @@ type (
 	LibertyRoute struct {
 		route.RouteBase
 		repoService kappa.Const
+		authService kappa.Const
 	}
 )
 
-func New(path string, repoService kappa.Const) *LibertyRoute {
+func New(path string, repoService kappa.Const, authService kappa.Const) *LibertyRoute {
 	l := &LibertyRoute{
 		repoService: repoService,
+		authService: authService,
 	}
 	l.RouteBase.SetPath(path)
 	return l
@@ -33,6 +36,7 @@ func New(path string, repoService kappa.Const) *LibertyRoute {
 
 func (l *LibertyRoute) Register(g *echo.Group) {
 	repo := l.GetService(l.repoService).(*himeji.Himeji)
+	auth := l.GetService(l.authService).(*pionen.Pionen)
 
 	g.GET("/:userid", func(c echo.Context) error {
 		result := new(himeji.Data)
@@ -52,7 +56,7 @@ func (l *LibertyRoute) Register(g *echo.Group) {
 		} else {
 			return echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("user %s not found", c.Param("userid")))
 		}
-	})
+	}, auth.MAuthUserUrlParam("userid"))
 
 	g.POST("", func(c echo.Context) error {
 		user := libertymodel.GetRequestPostUser(c)

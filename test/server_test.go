@@ -24,7 +24,7 @@ func TestHfse(t *testing.T) {
 	repo := h.Provide(himeji.New(repoFacade))
 	auth := h.Provide(pionen.New("signing-key", "hfse", 48, repo))
 
-	h.Register(libertyroute.New("/users", repo))
+	h.Register(libertyroute.New("/users", repo, auth))
 	h.Register(pionenroute.New("/auth", auth))
 
 	////////////////

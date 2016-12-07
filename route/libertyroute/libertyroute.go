@@ -17,23 +17,6 @@ type (
 		route.RouteBase
 		repoService kappa.Const
 	}
-
-	RequestPublicUser struct {
-		Value libertymodel.PublicUser `json:"data"`
-	}
-
-	RequestModelUser struct {
-		Value libertymodel.ModelUser `json:"data"`
-	}
-
-	PostUser struct {
-		libertymodel.PublicUser
-		libertymodel.UserPassword
-	}
-
-	RequestPostUser struct {
-		Value PostUser `json:"data"`
-	}
 )
 
 func New(path string, repoService kappa.Const) *LibertyRoute {
@@ -55,14 +38,24 @@ func (l *LibertyRoute) Register(g *echo.Group) {
 		result := new(himeji.Data)
 		done := libertymodel.GetUser(repo, c.Param("userid"), result)
 		if <-done {
-			return c.JSON(http.StatusOK, RequestPublicUser{Value: result.Value.(libertymodel.ModelUser).PublicUser})
+			return c.JSON(http.StatusOK, libertymodel.RequestPublicUser{Value: result.Value.(libertymodel.ModelUser).PublicUser})
+		} else {
+			return echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("user %s not found", c.Param("userid")))
+		}
+	})
+
+	g.GET("/:userid/private", func(c echo.Context) error {
+		result := new(himeji.Data)
+		done := libertymodel.GetUser(repo, c.Param("userid"), result)
+		if <-done {
+			return c.JSON(http.StatusOK, libertymodel.RequestModelUser{Value: result.Value.(libertymodel.ModelUser)})
 		} else {
 			return echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("user %s not found", c.Param("userid")))
 		}
 	})
 
 	g.POST("", func(c echo.Context) error {
-		user := new(RequestPostUser)
+		user := new(libertymodel.RequestPostUser)
 		err := c.Bind(user)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "json malformed")
@@ -84,7 +77,7 @@ func (l *LibertyRoute) Register(g *echo.Group) {
 		}
 		done := libertymodel.StoreUser(repo, &himeji.Data{Value: usermodel})
 		if <-done {
-			return c.JSON(http.StatusCreated, RequestPublicUser{user.Value.PublicUser})
+			return c.JSON(http.StatusCreated, libertymodel.RequestPublicUser{Value: user.Value.PublicUser})
 		} else {
 			return echo.NewHTTPError(http.StatusInternalServerError, "could not store user")
 		}

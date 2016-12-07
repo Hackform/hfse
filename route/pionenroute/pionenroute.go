@@ -2,7 +2,7 @@ package pionenroute
 
 import (
 	"github.com/Hackform/hfse/kappa"
-	"github.com/Hackform/hfse/model/libertymodel"
+	"github.com/Hackform/hfse/model/pionenmodel"
 	"github.com/Hackform/hfse/route"
 	"github.com/Hackform/hfse/service/pionen"
 	"github.com/Hackform/hfse/service/pionen/access"
@@ -14,23 +14,6 @@ type (
 	PionenRoute struct {
 		route.RouteBase
 		authService kappa.Const
-	}
-
-	Login struct {
-		libertymodel.UserId
-		libertymodel.UserPassword
-	}
-
-	RequestLogin struct {
-		Value Login `json:"auth"`
-	}
-
-	JWTToken struct {
-		Token string `json:"token"`
-	}
-
-	RequestJWT struct {
-		Value JWTToken `json:"auth"`
 	}
 )
 
@@ -50,28 +33,28 @@ func (p *PionenRoute) Register(g *echo.Group) {
 	auth := p.GetService(p.authService).(*pionen.Pionen)
 
 	g.POST("/login", func(c echo.Context) error {
-		loginAttempt := new(RequestLogin)
+		loginAttempt := new(pionenmodel.RequestLogin)
 		c.Bind(loginAttempt)
 		if jwtString, err := auth.GetJWT(loginAttempt.Value.Id, loginAttempt.Value.Password); err == nil {
-			return c.JSON(http.StatusOK, RequestJWT{Value: JWTToken{Token: jwtString}})
+			return c.JSON(http.StatusOK, pionenmodel.RequestJWT{Value: pionenmodel.JWTToken{Token: jwtString}})
 		} else {
 			return echo.NewHTTPError(http.StatusBadRequest, "invalid password")
 		}
 	})
 
 	g.POST("/verify", func(c echo.Context) error {
-		req := new(RequestJWT)
+		req := new(pionenmodel.RequestJWT)
 		c.Bind(req)
 		if auth.VerifyJWT(req.Value.Token, access.USER) {
 			return c.JSON(http.StatusOK, true)
 		} else {
-			return c.JSON(http.StatusBadRequest, false)
+			return c.JSON(http.StatusUnauthorized, "unauthorized")
 		}
 	})
 
 	// for testing
 	g.POST("/unstable/decode", func(c echo.Context) error {
-		req := new(RequestJWT)
+		req := new(pionenmodel.RequestJWT)
 		c.Bind(req)
 
 		token, err := auth.ParseJWT(req.Value.Token)

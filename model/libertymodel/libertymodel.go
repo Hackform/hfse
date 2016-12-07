@@ -33,6 +33,27 @@ type (
 		PublicUser
 		PrivateUser
 	}
+
+	PostUser struct {
+		PublicUser
+		UserPassword
+	}
+
+	//////////////
+	// Requests //
+	//////////////
+
+	RequestPublicUser struct {
+		Value PublicUser `json:"data"`
+	}
+
+	RequestModelUser struct {
+		Value ModelUser `json:"data"`
+	}
+
+	RequestPostUser struct {
+		Value PostUser `json:"data"`
+	}
 )
 
 const (

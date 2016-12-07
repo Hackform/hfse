@@ -91,6 +91,12 @@ func (l *LibertyRoute) Register(g *echo.Group) {
 			return echo.NewHTTPError(http.StatusInternalServerError, "could not store user")
 		}
 	})
+
+	adminGroup := g.Group("/admin", auth.MAuthAdmin())
+
+	adminGroup.PUT("/:userid", func(c echo.Context) error {
+		return c.String(http.StatusOK, "put user")
+	})
 }
 
 func (l *LibertyRoute) Middleware() []echo.MiddlewareFunc {

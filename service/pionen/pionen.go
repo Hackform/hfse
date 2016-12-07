@@ -77,7 +77,8 @@ func (p *Pionen) GetJWT(userid, password string) (string, error) {
 }
 
 func (p *Pionen) ParseJWT(tokenString string) (*authClaim, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &authClaim{}, func(token *jwt.Token) (interface{}, error) {
+	claims := new(authClaim)
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
@@ -88,7 +89,7 @@ func (p *Pionen) ParseJWT(tokenString string) (*authClaim, error) {
 		return nil, err
 	}
 
-	if claims, ok := token.Claims.(*authClaim); ok && token.Valid && claims.VerifyIssuer(p.jwt_iss, true) {
+	if token.Valid && claims.VerifyIssuer(p.jwt_iss, true) {
 		return claims, nil
 	} else {
 		return nil, errors.New("jwt invalid")
@@ -124,5 +125,6 @@ func (p *Pionen) VerifyJWTUserId(tokenString string, userid string) bool {
 		return false
 	}
 
-	return claims.Id == userid
+	// somehow must use claims.userid.id not claims.id
+	return claims.UserId.Id == userid
 }

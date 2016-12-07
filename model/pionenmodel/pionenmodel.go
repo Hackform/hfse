@@ -2,6 +2,7 @@ package pionenmodel
 
 import (
 	"github.com/Hackform/hfse/model/libertymodel"
+	"github.com/labstack/echo"
 )
 
 type (
@@ -22,3 +23,15 @@ type (
 		Value JWTToken `json:"auth"`
 	}
 )
+
+func GetRequestJWT(c echo.Context) *RequestJWT {
+	req := new(RequestJWT)
+	c.Bind(req)
+	return req
+}
+
+func GetRequestLogin(c echo.Context) *RequestLogin {
+	req := new(RequestLogin)
+	c.Bind(req)
+	return req
+}

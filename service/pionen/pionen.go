@@ -76,31 +76,53 @@ func (p *Pionen) GetJWT(userid, password string) (string, error) {
 	}
 }
 
-func (p *Pionen) ParseJWT(tokenString string) (*jwt.Token, error) {
-	return jwt.ParseWithClaims(tokenString, &authClaim{}, func(token *jwt.Token) (interface{}, error) {
+func (p *Pionen) ParseJWT(tokenString string) (*authClaim, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &authClaim{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
 		return p.signingKey, nil
 	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if claims, ok := token.Claims.(*authClaim); ok && token.Valid && claims.VerifyIssuer(p.jwt_iss, true) {
+		return claims, nil
+	} else {
+		return nil, errors.New("jwt invalid")
+	}
 }
 
-func (p *Pionen) VerifyJWT(tokenString string, level uint8) bool {
-	token, err := p.ParseJWT(tokenString)
+func (p *Pionen) VerifyJWTLevel(tokenString string, level uint8) bool {
+	claims, err := p.ParseJWT(tokenString)
 
-	if claims, ok := token.Claims.(*authClaim); err == nil && ok && token.Valid && claims.VerifyIssuer(p.jwt_iss, true) {
-		if level > access.DIVIDE {
-			for _, i := range claims.AccessTags {
-				if i == level {
-					return true
-				}
-			}
-		} else {
-			if claims.AccessLevel <= level {
+	if err != nil {
+		return false
+	}
+
+	if level > access.DIVIDE {
+		for _, i := range claims.AccessTags {
+			if i == level {
 				return true
 			}
+		}
+	} else {
+		if claims.AccessLevel <= level {
+			return true
 		}
 	}
 
 	return false
+}
+
+func (p *Pionen) VerifyJWTUserId(tokenString string, userid string) bool {
+	claims, err := p.ParseJWT(tokenString)
+
+	if err != nil {
+		return false
+	}
+
+	return claims.Id == userid
 }

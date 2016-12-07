@@ -7,12 +7,25 @@ import (
 	"net/http"
 )
 
+func (p *Pionen) MiddleAuthUserId() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			req := pionenmodel.GetRequestJWT(c)
+			// special param: userid
+			if p.VerifyJWTUserId(req.Value.Token, c.Param(":userid")) {
+				return next(c)
+			} else {
+				return echo.NewHTTPError(http.StatusUnauthorized, "unauthorized")
+			}
+		}
+	}
+}
+
 func (p *Pionen) MiddleAuthLevel(level uint8) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			req := new(pionenmodel.RequestJWT)
-			c.Bind(req)
-			if p.VerifyJWT(req.Value.Token, level) {
+			req := pionenmodel.GetRequestJWT(c)
+			if p.VerifyJWTLevel(req.Value.Token, level) {
 				return next(c)
 			} else {
 				return echo.NewHTTPError(http.StatusUnauthorized, "unauthorized")

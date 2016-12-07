@@ -33,8 +33,7 @@ func (p *PionenRoute) Register(g *echo.Group) {
 	auth := p.GetService(p.authService).(*pionen.Pionen)
 
 	g.POST("/login", func(c echo.Context) error {
-		loginAttempt := new(pionenmodel.RequestLogin)
-		c.Bind(loginAttempt)
+		loginAttempt := pionenmodel.GetRequestLogin(c)
 		if jwtString, err := auth.GetJWT(loginAttempt.Value.Id, loginAttempt.Value.Password); err == nil {
 			return c.JSON(http.StatusOK, pionenmodel.RequestJWT{Value: pionenmodel.JWTToken{Token: jwtString}})
 		} else {
@@ -43,9 +42,8 @@ func (p *PionenRoute) Register(g *echo.Group) {
 	})
 
 	g.POST("/verify", func(c echo.Context) error {
-		req := new(pionenmodel.RequestJWT)
-		c.Bind(req)
-		if auth.VerifyJWT(req.Value.Token, access.USER) {
+		req := pionenmodel.GetRequestJWT(c)
+		if auth.VerifyJWTLevel(req.Value.Token, access.USER) {
 			return c.JSON(http.StatusOK, true)
 		} else {
 			return c.JSON(http.StatusUnauthorized, "unauthorized")
@@ -54,16 +52,15 @@ func (p *PionenRoute) Register(g *echo.Group) {
 
 	// for testing
 	g.POST("/unstable/decode", func(c echo.Context) error {
-		req := new(pionenmodel.RequestJWT)
-		c.Bind(req)
+		req := pionenmodel.GetRequestJWT(c)
 
-		token, err := auth.ParseJWT(req.Value.Token)
+		claims, err := auth.ParseJWT(req.Value.Token)
 
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "invalid token")
 		}
 
-		return c.JSON(http.StatusOK, token)
+		return c.JSON(http.StatusOK, claims)
 	})
 }
 

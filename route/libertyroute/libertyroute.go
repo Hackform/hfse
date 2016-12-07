@@ -55,15 +55,20 @@ func (l *LibertyRoute) Register(g *echo.Group) {
 	})
 
 	g.POST("", func(c echo.Context) error {
-		user := new(libertymodel.RequestPostUser)
-		err := c.Bind(user)
-		if err != nil {
+		user := libertymodel.GetRequestPostUser(c)
+		if len(user.Value.Id) < 1 || len(user.Value.Name) < 1 || len(user.Value.Password) < 1 {
 			return echo.NewHTTPError(http.StatusBadRequest, "json malformed")
 		}
+
+		if <-libertymodel.GetUser(repo, user.Value.Id, new(himeji.Data)) {
+			return echo.NewHTTPError(http.StatusBadRequest, "user exists")
+		}
+
 		hash, salt, err := pionenhash.Hash(user.Value.Password)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "invalid password")
 		}
+
 		usermodel := libertymodel.ModelUser{
 			PublicUser: user.Value.PublicUser,
 			PrivateUser: libertymodel.PrivateUser{

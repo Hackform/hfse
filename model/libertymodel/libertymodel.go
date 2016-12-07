@@ -2,6 +2,7 @@ package libertymodel
 
 import (
 	"github.com/Hackform/hfse/service/himeji"
+	"github.com/labstack/echo"
 )
 
 type (
@@ -55,6 +56,12 @@ type (
 		Value PostUser `json:"data"`
 	}
 )
+
+func GetRequestPostUser(c echo.Context) *RequestPostUser {
+	user := new(RequestPostUser)
+	c.Bind(user)
+	return user
+}
 
 const (
 	collection = "Users"

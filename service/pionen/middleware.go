@@ -1,21 +1,30 @@
 package pionen
 
 import (
-	"github.com/Hackform/hfse/model/pionenmodel"
+	"errors"
 	"github.com/Hackform/hfse/service/pionen/access"
 	"github.com/labstack/echo"
 	"net/http"
+	"strings"
 )
 
 type (
 	UserIdFunc func(echo.Context) string
 )
 
+func GetAuthHeaderToken(c echo.Context) (string, error) {
+	req := strings.Fields(c.Request().Header.Get("Authorization"))
+	if len(req) != 2 || req[0] != "Bearer" {
+		return "", errors.New("Not authorized")
+	}
+	return req[1], nil
+}
+
 func (p *Pionen) MAuthLevel(level uint8) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			req := pionenmodel.GetRequestJWT(c)
-			if p.VerifyJWTLevel(req.Value.Token, level) {
+			token, err := GetAuthHeaderToken(c)
+			if err == nil && p.VerifyJWTLevel(token, level) {
 				return next(c)
 			} else {
 				return echo.NewHTTPError(http.StatusUnauthorized, "unauthorized")
@@ -43,8 +52,8 @@ func (p *Pionen) MAuthUser() echo.MiddlewareFunc {
 func (p *Pionen) MAuthUserId(f UserIdFunc) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			req := pionenmodel.GetRequestJWT(c)
-			if p.VerifyJWTUserId(req.Value.Token, f(c)) {
+			token, err := GetAuthHeaderToken(c)
+			if err == nil && p.VerifyJWTUserId(token, f(c)) {
 				return next(c)
 			} else {
 				return echo.NewHTTPError(http.StatusUnauthorized, "unauthorized")

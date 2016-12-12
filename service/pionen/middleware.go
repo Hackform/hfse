@@ -53,7 +53,7 @@ func (p *Pionen) MAuthUserId(f UserIdFunc) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			token, err := GetAuthHeaderToken(c)
-			if err == nil && p.VerifyJWTUserId(token, f(c)) {
+			if err == nil && p.VerifyJWTUsername(token, f(c)) {
 				return next(c)
 			} else {
 				return echo.NewHTTPError(http.StatusUnauthorized, "unauthorized")

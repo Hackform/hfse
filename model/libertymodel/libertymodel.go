@@ -50,7 +50,7 @@ type (
 	}
 
 	PostUser struct {
-		PublicUser
+		UserInfo
 		UserPassword
 	}
 
@@ -103,6 +103,16 @@ const (
 
 func GetUser(repo *himeji.Himeji, uid string, result *himeji.Data) <-chan bool {
 	return repo.QueryId(collection, uid, result)
+}
+
+func GetUserByUsername(repo *himeji.Himeji, username string, result *himeji.Data) <-chan bool {
+	return repo.Query(collection, himeji.Bounds{
+		himeji.Bound{
+			Condition: "equal",
+			Item:      "username",
+			Value:     username,
+		},
+	}, result)
 }
 
 func StoreUser(repo *himeji.Himeji, user *himeji.Data) <-chan bool {

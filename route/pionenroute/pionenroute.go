@@ -34,7 +34,7 @@ func (p *PionenRoute) Register(g *echo.Group) {
 
 	g.POST("/login", func(c echo.Context) error {
 		loginAttempt := pionenmodel.GetRequestLogin(c)
-		if jwtString, err := auth.GetJWT(loginAttempt.Value.Id, loginAttempt.Value.Password); err == nil {
+		if jwtString, err := auth.GetJWT(loginAttempt.Value.Username, loginAttempt.Value.Password); err == nil {
 			return c.JSON(http.StatusOK, pionenmodel.RequestJWT{Value: pionenmodel.JWTToken{Token: jwtString}})
 		} else {
 			return echo.NewHTTPError(http.StatusBadRequest, "invalid password")

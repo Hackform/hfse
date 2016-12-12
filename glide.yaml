@@ -19,3 +19,5 @@ import:
   subpackages:
   - http
 - package: golang.org/x/time
+- package: github.com/pborman/uuid
+  version: ^1.0.0

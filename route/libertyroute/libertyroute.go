@@ -10,6 +10,7 @@ import (
 	"github.com/Hackform/hfse/service/pionen/access"
 	pionenhash "github.com/Hackform/hfse/service/pionen/hash"
 	"github.com/labstack/echo"
+	"github.com/pborman/uuid"
 	"net/http"
 )
 
@@ -38,33 +39,33 @@ func (l *LibertyRoute) Register(g *echo.Group) {
 	repo := l.GetService(l.repoService).(*himeji.Himeji)
 	auth := l.GetService(l.authService).(*pionen.Pionen)
 
-	g.GET("/:userid", func(c echo.Context) error {
+	g.GET("/:username", func(c echo.Context) error {
 		result := new(himeji.Data)
-		done := libertymodel.GetUser(repo, c.Param("userid"), result)
+		done := libertymodel.GetUserByUsername(repo, c.Param("username"), result)
 		if <-done {
 			return c.JSON(http.StatusOK, libertymodel.RequestPublicUser{Value: result.Value.(libertymodel.ModelUser).PublicUser})
 		} else {
-			return echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("user %s not found", c.Param("userid")))
+			return echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("user %s not found", c.Param("username")))
 		}
 	})
 
-	g.GET("/:userid/private", func(c echo.Context) error {
+	g.GET("/:username/private", func(c echo.Context) error {
 		result := new(himeji.Data)
-		done := libertymodel.GetUser(repo, c.Param("userid"), result)
+		done := libertymodel.GetUserByUsername(repo, c.Param("username"), result)
 		if <-done {
-			return c.JSON(http.StatusOK, libertymodel.RequestModelUser{Value: result.Value.(libertymodel.ModelUser)})
+			return c.JSON(http.StatusOK, libertymodel.RequestUserInfo{Value: result.Value.(libertymodel.UserInfo)})
 		} else {
-			return echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("user %s not found", c.Param("userid")))
+			return echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("user %s not found", c.Param("username")))
 		}
-	}, auth.MAuthUserUrlParam("userid"))
+	}, auth.MAuthUserUrlParam("username"))
 
 	g.POST("", func(c echo.Context) error {
 		user := libertymodel.GetRequestPostUser(c)
-		if len(user.Value.Id) < 1 || len(user.Value.Name) < 1 || len(user.Value.Password) < 1 {
+		if len(user.Value.Username) < 1 || len(user.Value.Password) < 1 {
 			return echo.NewHTTPError(http.StatusBadRequest, "json malformed")
 		}
 
-		if <-libertymodel.GetUser(repo, user.Value.Id, new(himeji.Data)) {
+		if <-libertymodel.GetUserByUsername(repo, user.Value.Username, new(himeji.Data)) {
 			return echo.NewHTTPError(http.StatusBadRequest, "user exists")
 		}
 
@@ -73,15 +74,20 @@ func (l *LibertyRoute) Register(g *echo.Group) {
 			return echo.NewHTTPError(http.StatusBadRequest, "invalid password")
 		}
 
+		uid := uuid.New()
+
 		usermodel := libertymodel.ModelUser{
-			PublicUser: user.Value.PublicUser,
-			PrivateUser: libertymodel.PrivateUser{
-				UserPermissions: libertymodel.UserPermissions{
-					AccessLevel: access.USER,
-					AccessTags:  make([]uint8, 0),
-				},
+			Uid: libertymodel.Uid{
+				Id: uid,
+			},
+			UserInfo: user.Value.UserInfo,
+			UserSecurity: libertymodel.UserSecurity{
 				Hash: hash,
 				Salt: salt,
+			},
+			UserPermissions: libertymodel.UserPermissions{
+				AccessLevel: access.USER,
+				AccessTags:  make([]uint8, 0),
 			},
 		}
 		done := libertymodel.StoreUser(repo, &himeji.Data{Value: usermodel})
@@ -94,7 +100,7 @@ func (l *LibertyRoute) Register(g *echo.Group) {
 
 	adminGroup := g.Group("/admin", auth.MAuthAdmin())
 
-	adminGroup.PUT("/:userid", func(c echo.Context) error {
+	adminGroup.PUT("/:username", func(c echo.Context) error {
 		return c.String(http.StatusOK, "put user")
 	})
 }

@@ -24,6 +24,7 @@ type (
 
 	authClaim struct {
 		jwt.StandardClaims
+		libertymodel.Uid
 		libertymodel.PublicUser
 		libertymodel.UserPermissions
 	}
@@ -41,11 +42,11 @@ func New(signingKey, issuer string, hours int, repoService kappa.Const) *Pionen 
 func (p *Pionen) Start()    {}
 func (p *Pionen) Shutdown() {}
 
-func (p *Pionen) VerifyUser(userid, password string) (bool, *libertymodel.ModelUser) {
+func (p *Pionen) VerifyUser(username, password string) (bool, *libertymodel.ModelUser) {
 	repo := p.GetService(p.repoService).(*himeji.Himeji)
 
 	result := new(himeji.Data)
-	done := libertymodel.GetUser(repo, userid, result)
+	done := libertymodel.GetUserByUsername(repo, username, result)
 	if !<-done {
 		return false, nil
 	}
@@ -58,16 +59,17 @@ func (p *Pionen) VerifyUser(userid, password string) (bool, *libertymodel.ModelU
 	return false, nil
 }
 
-func (p *Pionen) GetJWT(userid, password string) (string, error) {
-	if verify, user := p.VerifyUser(userid, password); verify {
+func (p *Pionen) GetJWT(username, password string) (string, error) {
+	if verify, user := p.VerifyUser(username, password); verify {
 		claims := authClaim{
 			jwt.StandardClaims{
 				Issuer:    p.jwt_iss,
 				IssuedAt:  time.Now().Unix(),
 				ExpiresAt: time.Now().Add(time.Hour * time.Duration(p.jwt_hours)).Unix(),
 			},
+			user.Uid,
 			user.PublicUser,
-			user.PrivateUser.UserPermissions,
+			user.UserPermissions,
 		}
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 		return token.SignedString(p.signingKey)
@@ -118,13 +120,12 @@ func (p *Pionen) VerifyJWTLevel(tokenString string, level uint8) bool {
 	return false
 }
 
-func (p *Pionen) VerifyJWTUserId(tokenString string, userid string) bool {
+func (p *Pionen) VerifyJWTUsername(tokenString string, username string) bool {
 	claims, err := p.ParseJWT(tokenString)
 
 	if err != nil {
 		return false
 	}
 
-	// somehow must use claims.userid.id not claims.id
-	return claims.UserId.Id == userid
+	return claims.Username == username
 }

@@ -49,15 +49,15 @@ func (l *LibertyRoute) Register(g *echo.Group) {
 		}
 	})
 
-	g.GET("/:username/private", func(c echo.Context) error {
+	g.GET("/:uid/private", func(c echo.Context) error {
 		result := new(himeji.Data)
-		done := libertymodel.GetUserByUsername(repo, c.Param("username"), result)
+		done := libertymodel.GetUser(repo, c.Param("uid"), result)
 		if <-done {
 			return c.JSON(http.StatusOK, libertymodel.RequestUserInfo{Value: result.Value.(libertymodel.UserInfo)})
 		} else {
-			return echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("user %s not found", c.Param("username")))
+			return echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("user %s not found", c.Param("uid")))
 		}
-	}, auth.MAuthUserUrlParam("username"))
+	}, auth.MAuthUserUrlParam("uid"))
 
 	g.POST("", func(c echo.Context) error {
 		user := libertymodel.GetRequestPostUser(c)

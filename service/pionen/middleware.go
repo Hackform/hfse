@@ -9,7 +9,7 @@ import (
 )
 
 type (
-	UserIdFunc func(echo.Context) string
+	UidFunc func(echo.Context) string
 )
 
 func GetAuthHeaderToken(c echo.Context) (string, error) {
@@ -49,11 +49,11 @@ func (p *Pionen) MAuthUser() echo.MiddlewareFunc {
 	return p.MAuthLevel(access.USER)
 }
 
-func (p *Pionen) MAuthUserId(f UserIdFunc) echo.MiddlewareFunc {
+func (p *Pionen) MAuthUserId(f UidFunc) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			token, err := GetAuthHeaderToken(c)
-			if err == nil && p.VerifyJWTUsername(token, f(c)) {
+			if err == nil && p.VerifyJWTUid(token, f(c)) {
 				return next(c)
 			} else {
 				return echo.NewHTTPError(http.StatusUnauthorized, "unauthorized")

@@ -120,12 +120,12 @@ func (p *Pionen) VerifyJWTLevel(tokenString string, level uint8) bool {
 	return false
 }
 
-func (p *Pionen) VerifyJWTUsername(tokenString string, username string) bool {
+func (p *Pionen) VerifyJWTUid(tokenString string, uid string) bool {
 	claims, err := p.ParseJWT(tokenString)
 
 	if err != nil {
 		return false
 	}
 
-	return claims.Username == username
+	return claims.Uid.Id == uid
 }

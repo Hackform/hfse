@@ -49,7 +49,7 @@ func (l *LibertyRoute) Register(g *echo.Group) {
 		}
 	})
 
-	g.GET("/:uid/private", func(c echo.Context) error {
+	g.GET("/uid/:uid", func(c echo.Context) error {
 		result := new(himeji.Data)
 		done := libertymodel.GetUser(repo, c.Param("uid"), result)
 		if <-done {
@@ -100,7 +100,7 @@ func (l *LibertyRoute) Register(g *echo.Group) {
 
 	adminGroup := g.Group("/admin", auth.MAuthAdmin())
 
-	adminGroup.PUT("/:username", func(c echo.Context) error {
+	adminGroup.PUT("/uid/:uid", func(c echo.Context) error {
 		return c.String(http.StatusOK, "put user")
 	})
 }

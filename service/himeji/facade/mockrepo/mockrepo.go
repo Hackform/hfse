@@ -41,6 +41,12 @@ func (f *MockRepoFacade) Insert(done chan<- bool, collection string, data *himej
 }
 
 func (f *MockRepoFacade) Query(done chan<- bool, collection string, query himeji.Bounds, result *himeji.Data) {
+	for _, v := range db[collection] {
+		if matchBound(v, query) {
+			result.Value = v
+			done <- true
+		}
+	}
 	done <- false
 }
 
@@ -52,6 +58,24 @@ func (f *MockRepoFacade) QueryId(done chan<- bool, collection string, query stri
 		}
 	}
 	done <- false
+}
+
+func matchBound(v interface{}, query himeji.Bounds) bool {
+	marshaled, err := json.Marshal(v)
+	if err != nil {
+		return false
+	}
+	dat := make(map[string]interface{})
+	json.Unmarshal(marshaled, &dat)
+	for _, bound := range query {
+		switch bound.Condition {
+		case "equal":
+			if dat[bound.Item] == bound.Value {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func extractId(data interface{}) string {

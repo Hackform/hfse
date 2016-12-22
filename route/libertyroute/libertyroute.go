@@ -53,7 +53,7 @@ func (l *LibertyRoute) Register(g *echo.Group) {
 		result := new(himeji.Data)
 		done := libertymodel.GetUser(repo, c.Param("uid"), result)
 		if <-done {
-			return c.JSON(http.StatusOK, libertymodel.RequestUserInfo{Value: result.Value.(libertymodel.UserInfo)})
+			return c.JSON(http.StatusOK, libertymodel.RequestUserInfo{Value: result.Value.(libertymodel.ModelUser).UserInfo})
 		} else {
 			return echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("user %s not found", c.Param("uid")))
 		}

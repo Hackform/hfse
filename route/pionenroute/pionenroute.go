@@ -5,7 +5,6 @@ import (
 	"github.com/Hackform/hfse/model/pionenmodel"
 	"github.com/Hackform/hfse/route"
 	"github.com/Hackform/hfse/service/pionen"
-	"github.com/Hackform/hfse/service/pionen/access"
 	"github.com/labstack/echo"
 	"net/http"
 )
@@ -41,14 +40,10 @@ func (p *PionenRoute) Register(g *echo.Group) {
 		}
 	})
 
-	g.POST("/verify", func(c echo.Context) error {
-		req := pionenmodel.GetRequestJWT(c)
-		if auth.VerifyJWTLevel(req.Value.Token, access.USER) {
-			return c.JSON(http.StatusOK, true)
-		} else {
-			return c.JSON(http.StatusUnauthorized, "unauthorized")
-		}
-	})
+	// for testing
+	g.GET("/unstable/verify", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, true)
+	}, auth.MAuthUser())
 
 	// for testing
 	g.POST("/unstable/decode", func(c echo.Context) error {

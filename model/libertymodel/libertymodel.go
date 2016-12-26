@@ -10,6 +10,10 @@ type (
 		Id string `json:"id" bson:"_id"`
 	}
 
+	UserDate struct {
+		DateCreated int64 `json:"date-created" bson:"date-created"`
+	}
+
 	UserId struct {
 		Username string `json:"username" bson:"username"`
 	}
@@ -42,9 +46,14 @@ type (
 		PrivateUser
 	}
 
+	UserProps struct {
+		UserDate
+	}
+
 	ModelUser struct {
 		Uid
 		UserInfo
+		UserProps
 		UserSecurity
 		UserPermissions
 	}

@@ -12,6 +12,7 @@ import (
 	"github.com/labstack/echo"
 	"github.com/pborman/uuid"
 	"net/http"
+	"time"
 )
 
 type (
@@ -81,6 +82,11 @@ func (l *LibertyRoute) Register(g *echo.Group) {
 				Id: uid,
 			},
 			UserInfo: user.Value.UserInfo,
+			UserProps: libertymodel.UserProps{
+				UserDate: libertymodel.UserDate{
+					DateCreated: time.Now().Unix(),
+				},
+			},
 			UserSecurity: libertymodel.UserSecurity{
 				Hash: hash,
 				Salt: salt,

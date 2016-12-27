@@ -10,8 +10,8 @@
   - [x] login, get jwt
   - [x] unstable - verify, verify jwt via middleware
   - [x] unstable - decode, check jwt info
-- [ ] Pearl - Redis cache front end
-- [ ] Eiffel - websockets
+- [ ] Himeji Cache - Redis cache front end
+- [ ] Pearl - websockets hub
 - [ ] Liberty - application management -> event sign in
   - [x] post new user
   - [x] get by username
@@ -19,3 +19,4 @@
 - [ ] Lloyds - mentor queue
 - [ ] Guggenheim - project submission
 - [ ] Colosseum - front end
+- [ ] Eiffel - task delegation
